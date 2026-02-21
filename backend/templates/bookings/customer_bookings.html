@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bookings - Elleden Hotel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 2rem 0;
+    }
+    
+    .badge-pending { background-color: #ffc107; color: #212529; }
+    .badge-confirmed { background-color: #28a745; }
+    .badge-checked_in { background-color: #007bff; }
+    .badge-checked_out { background-color: #6c757d; }
+    .badge-cancelled { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>My Bookings</h2>
+                <p class="mb-0 opacity-75">View and manage your reservations</p>
+            </div>
+            <a href="{% url 'dashboard:customer_index' %}" class="btn btn-light">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    {% if bookings %}
+    <div class="row">
+        {% for booking in bookings %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>{{ booking.booking_reference }}</strong>
+                    <span class="badge badge-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                </div>
+                <div class="card-body">
+                    <h5>{{ booking.room_type.name }}</h5>
+                    <p class="text-muted mb-3">Room {{ booking.room.room_number }}</p>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Check-in</small>
+                            <strong>{{ booking.check_in_date|date:"M d, Y" }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Check-out</small>
+                            <strong>{{ booking.check_out_date|date:"M d, Y" }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">Total</small>
+                            <h5 class="mb-0 text-primary">KES {{ booking.total_amount|floatformat:0 }}</h5>
+                        </div>
+                        <div>
+                            {% if booking.status in 'pending,confirmed' %}
+                            <a href="{% url 'bookings:cancel' booking.pk %}" 
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                Cancel
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'bookings:customer_detail' booking.pk %}" 
+                               class="btn btn-outline-primary btn-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-times fa-5x text-muted mb-4"></i>
+        <h3>No Bookings Yet</h3>
+        <p class="text-muted mb-4">You haven't made any reservations yet.</p>
+        <a href="{% url 'bookings:create' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>Book Your First Stay
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

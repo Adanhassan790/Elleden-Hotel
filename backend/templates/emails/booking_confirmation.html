@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #8B7355 0%, #5a4a3a 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .booking-ref {
+            background: #f8f5f2;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .booking-ref h2 {
+            margin: 0;
+            color: #8B7355;
+            font-size: 24px;
+        }
+        .booking-ref p {
+            margin: 5px 0 0;
+            color: #666;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        .details-table th,
+        .details-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .details-table th {
+            color: #666;
+            font-weight: 500;
+            width: 40%;
+        }
+        .details-table td {
+            color: #333;
+            font-weight: 600;
+        }
+        .total-row {
+            background: #f8f5f2;
+        }
+        .total-row th,
+        .total-row td {
+            font-size: 18px;
+            color: #8B7355;
+        }
+        .important-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 25px;
+        }
+        .important-info h3 {
+            margin: 0 0 10px;
+            color: #856404;
+        }
+        .important-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .contact-info {
+            background: #f8f5f2;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .contact-info h3 {
+            margin: 0 0 15px;
+            color: #333;
+        }
+        .contact-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .footer {
+            background: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #D4AF37;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ hotel_name }}</h1>
+            <p>Booking Confirmation</p>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ booking.guest_name }},</p>
+            <p>Thank you for choosing Elleden Hotel! Your booking has been successfully submitted. Below are your booking details:</p>
+            
+            <div class="booking-ref">
+                <h2>{{ booking.booking_reference }}</h2>
+                <p>Booking Reference Number</p>
+            </div>
+            
+            <table class="details-table">
+                <tr>
+                    <th>Guest Name</th>
+                    <td>{{ booking.guest_name }}</td>
+                </tr>
+                <tr>
+                    <th>Room Type</th>
+                    <td>{{ booking.room_type.name }}</td>
+                </tr>
+                <tr>
+                    <th>Room Number</th>
+                    <td>{{ booking.room.room_number }}</td>
+                </tr>
+                <tr>
+                    <th>Check-in Date</th>
+                    <td>{{ booking.check_in_date|date:"l, F j, Y" }}</td>
+                </tr>
+                <tr>
+                    <th>Check-out Date</th>
+                    <td>{{ booking.check_out_date|date:"l, F j, Y" }}</td>
+                </tr>
+                <tr>
+                    <th>Number of Nights</th>
+                    <td>{{ booking.total_nights }}</td>
+                </tr>
+                <tr>
+                    <th>Guests</th>
+                    <td>{{ booking.adults }} Adult(s), {{ booking.children }} Child(ren)</td>
+                </tr>
+                <tr>
+                    <th>Nightly Rate</th>
+                    <td>KES {{ booking.nightly_rate }}</td>
+                </tr>
+                <tr class="total-row">
+                    <th>Total Amount</th>
+                    <td>KES {{ booking.total_amount }}</td>
+                </tr>
+            </table>
+            
+            <div class="important-info">
+                <h3>Important Information</h3>
+                <ul>
+                    <li>Check-in time: 2:00 PM</li>
+                    <li>Check-out time: 11:00 AM</li>
+                    <li>Please bring a valid ID for check-in</li>
+                    <li>Payment is due upon check-in unless arranged otherwise</li>
+                </ul>
+            </div>
+            
+            {% if booking.special_requests %}
+            <p><strong>Special Requests:</strong> {{ booking.special_requests }}</p>
+            {% endif %}
+            
+            <div class="contact-info">
+                <h3>Contact Us</h3>
+                <p><strong>Phone:</strong> {{ hotel_phone }}</p>
+                <p><strong>Email:</strong> {{ hotel_email }}</p>
+                <p><strong>Address:</strong> {{ hotel_address }}</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2026 Elleden Hotel (K) Limited. All Rights Reserved.</p>
+            <p><a href="mailto:{{ hotel_email }}">{{ hotel_email }}</a></p>
+        </div>
+    </div>
+</body>
+</html>

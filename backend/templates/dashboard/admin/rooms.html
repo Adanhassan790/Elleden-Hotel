@@ -1,0 +1,80 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Room Management{% endblock %}
+
+{% block dashboard_content %}
+<!-- Room Types Summary -->
+<div class="row mb-4">
+    {% for room_type in room_types %}
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="text-muted">{{ room_type.name }}</h6>
+                <h4 class="mb-1">KES {{ room_type.base_price|floatformat:0 }}</h4>
+                <p class="text-muted mb-0">
+                    <span class="text-success">{{ room_type.rooms.count }}</span> rooms
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Rooms Table -->
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-bed me-2"></i>All Rooms</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Room #</th>
+                        <th>Type</th>
+                        <th>Floor</th>
+                        <th>Price/Night</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for room in rooms %}
+                    <tr>
+                        <td><strong>{{ room.room_number }}</strong></td>
+                        <td>{{ room.room_type.name }}</td>
+                        <td>Floor {{ room.floor }}</td>
+                        <td>KES {{ room.room_type.base_price|floatformat:0 }}</td>
+                        <td>
+                            <span class="badge badge-{{ room.status }}">
+                                {{ room.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                        type="button" data-bs-toggle="dropdown">
+                                    Change Status
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'dashboard:room_status' room.pk 'available' %}">Available</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'dashboard:room_status' room.pk 'occupied' %}">Occupied</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'dashboard:room_status' room.pk 'cleaning' %}">Cleaning</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'dashboard:room_status' room.pk 'maintenance' %}">Maintenance</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            No rooms configured. <a href="/admin/rooms/room/add/">Add rooms in Django Admin</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

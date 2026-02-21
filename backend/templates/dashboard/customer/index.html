@@ -1,0 +1,132 @@
+{% extends 'base_site.html' %}
+{% load static %}
+
+{% block title %}My Dashboard - Elleden Hotel{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+<!-- Page Hero -->
+<section class="page-hero" style="background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{% static "images/hotel-exterior.jpg" %}') center/cover;">
+    <div class="container">
+        <h1>Welcome, {{ request.user.first_name|default:request.user.email }}!</h1>
+        <p>Manage your bookings and explore our services</p>
+    </div>
+</section>
+
+<!-- Dashboard Section -->
+<section class="dashboard-section section">
+    <div class="container">
+        <!-- Quick Stats -->
+        <div class="dashboard-grid">
+            <div class="dashboard-card" style="text-align: center;">
+                <div class="stat-number">{{ total_bookings }}</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+            <div class="dashboard-card" style="text-align: center;">
+                <div class="stat-number">{{ active_bookings }}</div>
+                <div class="stat-label">Active Bookings</div>
+            </div>
+            <div class="dashboard-card" style="text-align: center;">
+                <div class="stat-number">{{ completed_bookings }}</div>
+                <div class="stat-label">Completed Stays</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="welcome-section">
+            <h2>What would you like to do?</h2>
+            <p>Choose from our available services</p>
+        </div>
+
+        <div class="services-grid" style="margin-bottom: 60px;">
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <h3>Book a Room</h3>
+                <p>Reserve your perfect room for your next stay with us.</p>
+                <a href="{% url 'bookings:book' %}" class="service-link">Book Now <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>My Bookings</h3>
+                <p>View and manage all your current and past reservations.</p>
+                <a href="{% url 'bookings:my_bookings' %}" class="service-link">View Bookings <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <h3>Explore Rooms</h3>
+                <p>Browse our selection of comfortable rooms and suites.</p>
+                <a href="{% url 'rooms:list' %}" class="service-link">View Rooms <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3>My Profile</h3>
+                <p>Update your personal information and preferences.</p>
+                <a href="{% url 'accounts:profile' %}" class="service-link">Edit Profile <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        {% if recent_bookings %}
+        <h2 class="section-title">Recent Bookings</h2>
+        <p class="section-subtitle">Your latest reservations at Elleden Hotel</p>
+        
+        {% for booking in recent_bookings %}
+        <div class="booking-item">
+            <div class="booking-info">
+                <h4>{{ booking.room.room_type.name }} - Room {{ booking.room.room_number }}</h4>
+                <p>
+                    <i class="fas fa-calendar-alt" style="color: var(--primary-color); margin-right: 8px;"></i>
+                    {{ booking.check_in_date|date:"M d, Y" }} - {{ booking.check_out_date|date:"M d, Y" }}
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <i class="fas fa-moon" style="color: var(--primary-color); margin-right: 8px;"></i>
+                    {{ booking.nights }} night{{ booking.nights|pluralize }}
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="booking-status {{ booking.status }}">{{ booking.get_status_display }}</span>
+                <a href="{% url 'bookings:booking_detail' booking.pk %}" class="btn btn-outline" style="padding: 10px 20px;">
+                    View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{% url 'bookings:my_bookings' %}" class="btn btn-primary">View All Bookings</a>
+        </div>
+        {% else %}
+        <div class="dashboard-card" style="text-align: center; padding: 60px;">
+            <i class="fas fa-calendar-plus" style="font-size: 4rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+            <h3>No Bookings Yet</h3>
+            <p style="color: var(--text-light); margin-bottom: 25px;">You haven't made any reservations yet. Book your first stay with us!</p>
+            <a href="{% url 'bookings:book' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Make Your First Booking
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta section">
+    <div class="cta-overlay"></div>
+    <div class="container">
+        <div class="cta-content">
+            <h2>Need Assistance?</h2>
+            <p>Our friendly staff is available 24/7 to help you with any queries</p>
+            <div class="cta-buttons">
+                <a href="tel:+254759435880" class="btn btn-primary"><i class="fas fa-phone"></i> Call Us</a>
+                <a href="mailto:elledenhotelltd@gmail.com" class="btn btn-outline"><i class="fas fa-envelope"></i> Email Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

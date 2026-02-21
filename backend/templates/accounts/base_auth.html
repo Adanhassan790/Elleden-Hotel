@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+    }
+    
+    .auth-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-width: 450px;
+        width: 100%;
+        padding: 2.5rem;
+    }
+    
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .auth-logo h1 {
+        color: var(--primary-color);
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .auth-logo p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.25);
+    }
+    
+    .btn-auth {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #666;
+    }
+    
+    .auth-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+    
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h1><i class="fas fa-hotel"></i> Elleden Hotel</h1>
+            <p>{% block auth_subtitle %}Welcome back{% endblock %}</p>
+        </div>
+        
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        
+        {% block auth_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

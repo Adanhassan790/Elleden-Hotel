@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmed - Elleden Hotel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .confirmation-header {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+        padding: 3rem 0;
+    }
+    
+    .confirmation-icon {
+        font-size: 5rem;
+        animation: checkmark 0.5s ease-in-out;
+    }
+    
+    @keyframes checkmark {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+    
+    .booking-reference {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-header text-center">
+    <div class="container">
+        <i class="fas fa-check-circle confirmation-icon mb-3"></i>
+        <h1>Booking Submitted!</h1>
+        <p class="mb-0 opacity-75">Thank you for choosing Elleden Hotel</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <p class="text-muted mb-2">Your Booking Reference</p>
+                    <p class="booking-reference mb-4">{{ booking.booking_reference }}</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-envelope me-2"></i>
+                        A confirmation email has been sent to <strong>{{ booking.guest_email }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Booking Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted">Guest Information</h6>
+                            <p class="mb-1"><strong>{{ booking.guest_name }}</strong></p>
+                            <p class="mb-1"><i class="fas fa-envelope me-2 text-muted"></i>{{ booking.guest_email }}</p>
+                            <p class="mb-0"><i class="fas fa-phone me-2 text-muted"></i>{{ booking.guest_phone }}</p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted">Room Details</h6>
+                            <p class="mb-1"><strong>{{ booking.room_type.name }}</strong></p>
+                            <p class="mb-1">Room {{ booking.room.room_number }}</p>
+                            <p class="mb-0">{{ booking.adults }} Adult(s), {{ booking.children }} Child(ren)</p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted">Check-in</h6>
+                            <p class="mb-1"><strong>{{ booking.check_in_date|date:"l, F d, Y" }}</strong></p>
+                            <p class="mb-0">From 2:00 PM</p>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-muted">Check-out</h6>
+                            <p class="mb-1"><strong>{{ booking.check_out_date|date:"l, F d, Y" }}</strong></p>
+                            <p class="mb-0">By 11:00 AM</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1">{{ booking.total_nights }} Night(s) × KES {{ booking.nightly_rate|floatformat:0 }}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-1">KES {{ booking.subtotal|floatformat:0 }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">Total Amount</h5>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <h5 class="mb-0 text-primary">KES {{ booking.total_amount|floatformat:0 }}</h5>
+                        </div>
+                    </div>
+                    
+                    {% if booking.special_requests %}
+                    <hr>
+                    <h6 class="text-muted">Special Requests</h6>
+                    <p class="mb-0">{{ booking.special_requests }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6><i class="fas fa-map-marker-alt me-2 text-primary"></i>Hotel Location</h6>
+                    <p class="mb-1">Elleden Hotel (K) Limited</p>
+                    <p class="mb-1">Moyale Road, Marsabit Town</p>
+                    <p class="mb-3">Marsabit County, Kenya</p>
+                    
+                    <h6><i class="fas fa-phone me-2 text-primary"></i>Need Help?</h6>
+                    <p class="mb-1">Call us: +254 759 435 880</p>
+                    <p class="mb-0">Email: info@elledenhotel.co.ke</p>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-home me-2"></i>Back to Website
+                </a>
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'dashboard:customer_index' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

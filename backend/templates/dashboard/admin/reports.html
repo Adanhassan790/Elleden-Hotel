@@ -1,0 +1,133 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Revenue (Last 30 Days)</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-pie-chart me-2"></i>Bookings by Status</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-bed me-2"></i>Revenue by Room Type</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="roomTypeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-table me-2"></i>Quick Stats</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <tbody>
+                        {% for item in bookings_by_status %}
+                        <tr>
+                            <td>
+                                <span class="badge badge-{{ item.status }} me-2">●</span>
+                                {{ item.status|title }}
+                            </td>
+                            <td class="text-end"><strong>{{ item.count }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Revenue Chart
+    const revenueData = {{ daily_revenue|safe }};
+    const revenueLabels = revenueData.map(d => d.created_at__date);
+    const revenueValues = revenueData.map(d => d.total);
+    
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: revenueLabels,
+            datasets: [{
+                label: 'Revenue (KES)',
+                data: revenueValues,
+                borderColor: '#8B4513',
+                backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+    
+    // Status Chart
+    const statusData = {{ bookings_by_status|safe }};
+    const statusColors = {
+        'pending': '#ffc107',
+        'confirmed': '#28a745',
+        'checked_in': '#007bff',
+        'checked_out': '#6c757d',
+        'cancelled': '#dc3545'
+    };
+    
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(d => d.status),
+            datasets: [{
+                data: statusData.map(d => d.count),
+                backgroundColor: statusData.map(d => statusColors[d.status] || '#999')
+            }]
+        }
+    });
+    
+    // Room Type Chart
+    const roomTypeData = {{ revenue_by_room_type|safe }};
+    
+    new Chart(document.getElementById('roomTypeChart'), {
+        type: 'bar',
+        data: {
+            labels: roomTypeData.map(d => d.room_type__name || 'Unknown'),
+            datasets: [{
+                label: 'Revenue (KES)',
+                data: roomTypeData.map(d => d.total || 0),
+                backgroundColor: '#8B4513'
+            }]
+        },
+        options: {
+            indexAxis: 'y'
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,242 @@
+{% extends 'base_site.html' %}
+{% load static %}
+
+{% block title %}Rooms & Accommodation - Elleden Hotel (K) Limited{% endblock %}
+{% block nav_rooms %}active{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header page-header-rooms">
+    <div class="page-header-overlay"></div>
+    <div class="container">
+        <h1>Rooms & Accommodation</h1>
+        <nav class="breadcrumb">
+            <a href="{% url 'dashboard:home' %}">Home</a>
+            <span>/</span>
+            <span>Rooms</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Rooms Intro -->
+<section class="rooms-intro section">
+    <div class="container">
+        <h2 class="section-title">Our Rooms</h2>
+        <p class="section-subtitle">We offer 50 well-appointed standard rooms, designed to provide comfort, tranquility, and a homely atmosphere.</p>
+    </div>
+</section>
+
+<!-- Room Features -->
+<section class="room-features section">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-item">
+                <i class="fas fa-bed"></i>
+                <h3>Comfortable Beds</h3>
+                <p>Quality beds with premium linens for a restful sleep</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-shower"></i>
+                <h3>En-suite Bathrooms</h3>
+                <p>Private bathrooms with hot showers</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-wifi"></i>
+                <h3>High-Speed Wi-Fi</h3>
+                <p>Stay connected with complimentary internet</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-tv"></i>
+                <h3>Flat-Screen TV</h3>
+                <p>Local & international channels</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-desktop"></i>
+                <h3>Work Desk</h3>
+                <p>Dedicated workspace for business travelers</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-sun"></i>
+                <h3>Natural Lighting</h3>
+                <p>Adequate natural lighting and ventilation</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-concierge-bell"></i>
+                <h3>24-Hour Room Service</h3>
+                <p>Round-the-clock assistance</p>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Secure Environment</h3>
+                <p>Safe and serene surroundings</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Room Types -->
+<section class="room-types section">
+    <div class="container">
+        <h2 class="section-title">Room Types</h2>
+        <div class="rooms-grid">
+            {% for room_type in room_types %}
+            <div class="room-card">
+                <div class="room-image">
+                    {% if room_type.image %}
+                    <img src="{{ room_type.image.url }}" alt="{{ room_type.name }}">
+                    {% else %}
+                    <img src="{% static 'images/room-single.jpg' %}" alt="{{ room_type.name }}">
+                    {% endif %}
+                    {% if forloop.first %}
+                    <div class="room-badge">Popular</div>
+                    {% endif %}
+                </div>
+                <div class="room-content">
+                    <div class="room-price">
+                        <span class="price-amount">KES {{ room_type.price_per_night|floatformat:0 }}</span>
+                        <span class="price-period">/ night</span>
+                    </div>
+                    <h3>{{ room_type.name }}</h3>
+                    <p>{{ room_type.description|truncatewords:20 }}</p>
+                    <ul class="room-amenities">
+                        <li><i class="fas fa-check"></i> En-suite Bathroom</li>
+                        <li><i class="fas fa-check"></i> Wi-Fi</li>
+                        <li><i class="fas fa-check"></i> TV</li>
+                        <li><i class="fas fa-check"></i> Room Service</li>
+                    </ul>
+                    <a href="{% url 'bookings:book' %}" class="btn btn-primary">Book Now</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="room-card">
+                <div class="room-image">
+                    <img src="{% static 'images/room-single.jpg' %}" alt="Single Room">
+                    <div class="room-badge">Popular</div>
+                </div>
+                <div class="room-content">
+                    <div class="room-price">
+                        <span class="price-amount">KES 3,500</span>
+                        <span class="price-period">/ night</span>
+                    </div>
+                    <h3>Single Room</h3>
+                    <p>Perfect for solo travelers. Comfortable single bed with all standard amenities.</p>
+                    <ul class="room-amenities">
+                        <li><i class="fas fa-check"></i> Single Bed</li>
+                        <li><i class="fas fa-check"></i> En-suite Bathroom</li>
+                        <li><i class="fas fa-check"></i> Wi-Fi</li>
+                        <li><i class="fas fa-check"></i> TV</li>
+                    </ul>
+                    <a href="{% url 'bookings:book' %}" class="btn btn-primary">Book Now</a>
+                </div>
+            </div>
+            <div class="room-card">
+                <div class="room-image">
+                    <img src="{% static 'images/room-double.jpg' %}" alt="Double Room">
+                    <div class="room-badge">Best Value</div>
+                </div>
+                <div class="room-content">
+                    <div class="room-price">
+                        <span class="price-amount">KES 5,000</span>
+                        <span class="price-period">/ night</span>
+                    </div>
+                    <h3>Double Room</h3>
+                    <p>Ideal for couples or business partners. Spacious room with a comfortable double bed.</p>
+                    <ul class="room-amenities">
+                        <li><i class="fas fa-check"></i> Double Bed</li>
+                        <li><i class="fas fa-check"></i> En-suite Bathroom</li>
+                        <li><i class="fas fa-check"></i> Wi-Fi</li>
+                        <li><i class="fas fa-check"></i> Work Desk</li>
+                    </ul>
+                    <a href="{% url 'bookings:book' %}" class="btn btn-primary">Book Now</a>
+                </div>
+            </div>
+            <div class="room-card">
+                <div class="room-image">
+                    <img src="{% static 'images/room-twin.jpg' %}" alt="Twin Room">
+                </div>
+                <div class="room-content">
+                    <div class="room-price">
+                        <span class="price-amount">KES 5,500</span>
+                        <span class="price-period">/ night</span>
+                    </div>
+                    <h3>Twin Room</h3>
+                    <p>Great for friends or colleagues traveling together. Two separate comfortable beds.</p>
+                    <ul class="room-amenities">
+                        <li><i class="fas fa-check"></i> Two Single Beds</li>
+                        <li><i class="fas fa-check"></i> En-suite Bathroom</li>
+                        <li><i class="fas fa-check"></i> Wi-Fi</li>
+                        <li><i class="fas fa-check"></i> TV</li>
+                    </ul>
+                    <a href="{% url 'bookings:book' %}" class="btn btn-primary">Book Now</a>
+                </div>
+            </div>
+            <div class="room-card">
+                <div class="room-image">
+                    <img src="{% static 'images/room-family.jpg' %}" alt="Family Room">
+                    <div class="room-badge">Family</div>
+                </div>
+                <div class="room-content">
+                    <div class="room-price">
+                        <span class="price-amount">KES 7,500</span>
+                        <span class="price-period">/ night</span>
+                    </div>
+                    <h3>Family Room</h3>
+                    <p>Perfect for families. Spacious room accommodating parents and children comfortably.</p>
+                    <ul class="room-amenities">
+                        <li><i class="fas fa-check"></i> Multiple Beds</li>
+                        <li><i class="fas fa-check"></i> En-suite Bathroom</li>
+                        <li><i class="fas fa-check"></i> Wi-Fi</li>
+                        <li><i class="fas fa-check"></i> Extra Space</li>
+                    </ul>
+                    <a href="{% url 'bookings:book' %}" class="btn btn-primary">Book Now</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Why Stay With Us -->
+<section class="why-stay section">
+    <div class="container">
+        <h2 class="section-title">Why Stay With Us?</h2>
+        <div class="why-stay-grid">
+            <div class="why-stay-item">
+                <i class="fas fa-tag"></i>
+                <h3>Competitive Rates</h3>
+                <p>Spacious rooms at affordable prices</p>
+            </div>
+            <div class="why-stay-item">
+                <i class="fas fa-user-tie"></i>
+                <h3>Professional Staff</h3>
+                <p>Friendly and attentive service</p>
+            </div>
+            <div class="why-stay-item">
+                <i class="fas fa-broom"></i>
+                <h3>Cleanliness</h3>
+                <p>Consistent cleanliness and privacy</p>
+            </div>
+            <div class="why-stay-item">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Long Stays Welcome</h3>
+                <p>Ideal for extended business or family stays</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta section">
+    <div class="cta-overlay"></div>
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to Book Your Stay?</h2>
+            <p>Contact us today to reserve your room at Elleden Hotel</p>
+            <div class="cta-buttons">
+                <a href="{% url 'bookings:book' %}" class="btn btn-primary">Book Now</a>
+                <a href="tel:+254759435880" class="btn btn-outline"><i class="fas fa-phone"></i> +254 759 435 880</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

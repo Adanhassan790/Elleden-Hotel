@@ -1,0 +1,330 @@
+{% extends 'base_site.html' %}
+{% load static %}
+
+{% block title %}Outside Catering Services - Elleden Hotel (K) Limited{% endblock %}
+{% block nav_catering %}active{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header page-header-catering">
+    <div class="page-header-overlay"></div>
+    <div class="container">
+        <h1>Outside Catering Services</h1>
+        <nav class="breadcrumb">
+            <a href="{% url 'dashboard:home' %}">Home</a>
+            <span>/</span>
+            <span>Catering</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Catering Intro -->
+<section class="catering-intro section">
+    <div class="container">
+        <div class="catering-grid">
+            <div class="catering-content">
+                <h2 class="section-title">Professional Catering Services</h2>
+                <p class="lead">We extend our hospitality beyond the hotel through reliable and professional outside catering services.</p>
+                <p>Our catering team ensures seamless delivery, fresh meals, and professional service for events of all sizes. Whether you're planning a corporate event, wedding, or family gathering, Elleden Hotel's catering team will make your event memorable.</p>
+            </div>
+            <div class="catering-image">
+                <img src="{% static 'images/catering.jpg' %}" alt="Elleden Hotel Catering Services">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What We Offer -->
+<section class="catering-offer section">
+    <div class="container">
+        <h2 class="section-title">What We Offer</h2>
+        <div class="offer-grid">
+            <div class="offer-card">
+                <div class="offer-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h3>Customized Menus</h3>
+                <p>Tailored menus to match your event theme and dietary requirements</p>
+            </div>
+            <div class="offer-card">
+                <div class="offer-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h3>Full-Service Staff</h3>
+                <p>Professional waitstaff and service personnel for your event</p>
+            </div>
+            <div class="offer-card">
+                <div class="offer-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <h3>Buffet & Plated Service</h3>
+                <p>Choice of service style to suit your event needs</p>
+            </div>
+            <div class="offer-card">
+                <div class="offer-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h3>Quality Equipment</h3>
+                <p>Premium catering equipment and service materials</p>
+            </div>
+            <div class="offer-card">
+                <div class="offer-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h3>On-Site Setup</h3>
+                <p>Complete setup and coordination at your venue</p>
+            </div>
+            <div class="offer-card">
+                <div class="offer-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <h3>Reliable Delivery</h3>
+                <p>Timely delivery ensuring fresh, hot meals at your event</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Events We Cater -->
+<section class="events-catered section">
+    <div class="container">
+        <h2 class="section-title">Events We Cater</h2>
+        <p class="section-subtitle">Professional catering for all occasions</p>
+        <div class="events-catered-grid">
+            <div class="event-catered-card">
+                <div class="event-catered-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h3>Corporate Events</h3>
+                <p>Business lunches, conferences, product launches, and corporate celebrations</p>
+            </div>
+            <div class="event-catered-card">
+                <div class="event-catered-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3>Weddings</h3>
+                <p>Complete wedding catering from cocktails to the main reception</p>
+            </div>
+            <div class="event-catered-card">
+                <div class="event-catered-icon">
+                    <i class="fas fa-birthday-cake"></i>
+                </div>
+                <h3>Birthday Parties</h3>
+                <p>Celebrate special milestones with delicious food and service</p>
+            </div>
+            <div class="event-catered-card">
+                <div class="event-catered-icon">
+                    <i class="fas fa-landmark"></i>
+                </div>
+                <h3>Government & NGO Functions</h3>
+                <p>Professional catering for official events and workshops</p>
+            </div>
+            <div class="event-catered-card">
+                <div class="event-catered-icon">
+                    <i class="fas fa-pray"></i>
+                </div>
+                <h3>Religious Gatherings</h3>
+                <p>Respectful service for religious ceremonies and celebrations</p>
+            </div>
+            <div class="event-catered-card">
+                <div class="event-catered-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h3>Family Occasions</h3>
+                <p>Reunions, anniversaries, and intimate family gatherings</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Our Catering -->
+<section class="why-catering section">
+    <div class="container">
+        <h2 class="section-title">Why Choose Our Catering?</h2>
+        <div class="why-catering-grid">
+            <div class="why-catering-item">
+                <span class="why-number">01</span>
+                <div class="why-content">
+                    <h3>Fresh Ingredients</h3>
+                    <p>We use only the freshest, locally-sourced ingredients for all our dishes</p>
+                </div>
+            </div>
+            <div class="why-catering-item">
+                <span class="why-number">02</span>
+                <div class="why-content">
+                    <h3>Experienced Team</h3>
+                    <p>Our professional chefs and staff have years of catering experience</p>
+                </div>
+            </div>
+            <div class="why-catering-item">
+                <span class="why-number">03</span>
+                <div class="why-content">
+                    <h3>Flexible Packages</h3>
+                    <p>Customizable packages to fit your budget and requirements</p>
+                </div>
+            </div>
+            <div class="why-catering-item">
+                <span class="why-number">04</span>
+                <div class="why-content">
+                    <h3>Attention to Detail</h3>
+                    <p>Every aspect of your event is carefully planned and executed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Catering Process -->
+<section class="catering-process section">
+    <div class="container">
+        <h2 class="section-title">Our Catering Process</h2>
+        <div class="process-timeline">
+            <div class="process-step">
+                <div class="step-icon">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <div class="step-content">
+                    <h3>1. Consultation</h3>
+                    <p>Contact us to discuss your event needs and preferences</p>
+                </div>
+            </div>
+            <div class="process-step">
+                <div class="step-icon">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <div class="step-content">
+                    <h3>2. Menu Planning</h3>
+                    <p>Work with our team to create your perfect menu</p>
+                </div>
+            </div>
+            <div class="process-step">
+                <div class="step-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <div class="step-content">
+                    <h3>3. Quote & Booking</h3>
+                    <p>Receive a detailed quote and confirm your booking</p>
+                </div>
+            </div>
+            <div class="process-step">
+                <div class="step-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="step-content">
+                    <h3>4. Event Day</h3>
+                    <p>Sit back and enjoy as we handle everything</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta section">
+    <div class="cta-overlay"></div>
+    <div class="container">
+        <div class="cta-content">
+            <h2>Let Us Cater Your Next Event</h2>
+            <p>Contact us for a customized catering quote</p>
+            <div class="cta-buttons">
+                <a href="#inquiry-form" class="btn btn-primary">Get Quote</a>
+                <a href="tel:+254759435880" class="btn btn-outline"><i class="fas fa-phone"></i> Call Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Catering Inquiry Form -->
+<section class="inquiry-section section" id="inquiry-form">
+    <div class="container">
+        <h2 class="section-title">Request a Catering Quote</h2>
+        <p class="section-subtitle">Tell us about your event and we'll prepare a customized quote</p>
+        
+        <div class="inquiry-form-wrapper">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success" style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <i class="fas fa-check-circle"></i> {{ message }}
+                        <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; float: right; cursor: pointer;">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <form class="catering-form" method="POST">
+                {% csrf_token %}
+                <div class="form-section">
+                    <h3><i class="fas fa-user"></i> Contact Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="id_name">Your Name *</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_email">Email Address *</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_phone">Phone Number *</label>
+                            {{ form.phone }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Event Details</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="id_event_type">Event Type *</label>
+                            {{ form.event_type }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_event_date">Event Date *</label>
+                            {{ form.event_date }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_event_time">Event Time *</label>
+                            {{ form.event_time }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_guest_count">Number of Guests *</label>
+                            {{ form.guest_count }}
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="id_venue_address">Event Venue/Location *</label>
+                            {{ form.venue_address }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3><i class="fas fa-utensils"></i> Catering Requirements</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="id_service_type">Service Type *</label>
+                            {{ form.service_type }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_budget_range">Budget Range (Optional)</label>
+                            {{ form.budget_range }}
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="id_menu_preferences">Menu Preferences</label>
+                            {{ form.menu_preferences }}
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="id_additional_services">Additional Services Needed</label>
+                            {{ form.additional_services }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-submit">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane"></i> Request Quote
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

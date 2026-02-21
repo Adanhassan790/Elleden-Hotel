@@ -1,0 +1,200 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Booking Details - {{ booking.booking_reference }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Booking Details -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Booking Information</h6>
+                <div>
+                    <span class="badge badge-{{ booking.status }} me-2">{{ booking.get_status_display }}</span>
+                    <span class="badge bg-{{ booking.payment_status }}">{{ booking.get_payment_status_display }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Guest Information</h6>
+                        <p class="mb-1"><strong>{{ booking.guest_name }}</strong></p>
+                        <p class="mb-1"><i class="fas fa-envelope me-2 text-muted"></i>{{ booking.guest_email }}</p>
+                        <p class="mb-1"><i class="fas fa-phone me-2 text-muted"></i>{{ booking.guest_phone }}</p>
+                        {% if booking.guest_id_number %}
+                        <p class="mb-1"><i class="fas fa-id-card me-2 text-muted"></i>{{ booking.guest_id_number }}</p>
+                        {% endif %}
+                        <p class="mb-0"><i class="fas fa-globe me-2 text-muted"></i>{{ booking.guest_nationality }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Room Information</h6>
+                        <p class="mb-1"><strong>Room {{ booking.room.room_number }}</strong></p>
+                        <p class="mb-1">{{ booking.room_type.name }}</p>
+                        <p class="mb-1">Floor {{ booking.room.floor }}</p>
+                        <p class="mb-0">{{ booking.adults }} Adult(s), {{ booking.children }} Child(ren)</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Check-in</h6>
+                        <p class="mb-0"><strong>{{ booking.check_in_date|date:"l, M d, Y" }}</strong></p>
+                        {% if booking.actual_check_in %}
+                        <small class="text-success">Checked in: {{ booking.actual_check_in|time:"g:i A" }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Check-out</h6>
+                        <p class="mb-0"><strong>{{ booking.check_out_date|date:"l, M d, Y" }}</strong></p>
+                        {% if booking.actual_check_out %}
+                        <small class="text-success">Checked out: {{ booking.actual_check_out|time:"g:i A" }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Duration</h6>
+                        <p class="mb-0"><strong>{{ booking.total_nights }} Night(s)</strong></p>
+                    </div>
+                </div>
+                
+                {% if booking.special_requests %}
+                <hr>
+                <h6 class="text-muted">Special Requests</h6>
+                <p class="mb-0">{{ booking.special_requests }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Payments -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment History</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                    <i class="fas fa-plus me-1"></i>Add Payment
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Method</th>
+                                <th>Reference</th>
+                                <th>Amount</th>
+                                <th>Received By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ payment.get_payment_method_display }}</td>
+                                <td>{{ payment.transaction_reference|default:"-" }}</td>
+                                <td><strong>KES {{ payment.amount|floatformat:0 }}</strong></td>
+                                <td>{{ payment.received_by.get_full_name|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3 text-muted">No payments recorded</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Price Summary -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Price Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{{ booking.total_nights }} Night(s) × KES {{ booking.nightly_rate|floatformat:0 }}</span>
+                    <span>KES {{ booking.subtotal|floatformat:0 }}</span>
+                </div>
+                {% if booking.discount > 0 %}
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>Discount</span>
+                    <span>- KES {{ booking.discount|floatformat:0 }}</span>
+                </div>
+                {% endif %}
+                {% if booking.tax > 0 %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tax</span>
+                    <span>KES {{ booking.tax|floatformat:0 }}</span>
+                </div>
+                {% endif %}
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Total</strong>
+                    <strong>KES {{ booking.total_amount|floatformat:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2 text-success">
+                    <span>Paid</span>
+                    <span>KES {{ booking.amount_paid|floatformat:0 }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>Balance Due</strong>
+                    <strong class="{% if booking.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                        KES {{ booking.balance_due|floatformat:0 }}
+                    </strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-tasks me-2"></i>Actions</h6>
+            </div>
+            <div class="card-body">
+                {% if booking.status == 'pending' %}
+                <a href="{% url 'dashboard:booking_action' booking.pk 'confirm' %}" 
+                   class="btn btn-success w-100 mb-2">
+                    <i class="fas fa-check me-2"></i>Confirm Booking
+                </a>
+                <a href="{% url 'dashboard:booking_action' booking.pk 'cancel' %}" 
+                   class="btn btn-outline-danger w-100"
+                   onclick="return confirm('Are you sure you want to cancel this booking?')">
+                    <i class="fas fa-times me-2"></i>Cancel Booking
+                </a>
+                {% elif booking.status == 'confirmed' %}
+                <a href="{% url 'dashboard:booking_action' booking.pk 'checkin' %}" 
+                   class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-sign-in-alt me-2"></i>Check In Guest
+                </a>
+                <a href="{% url 'dashboard:booking_action' booking.pk 'cancel' %}" 
+                   class="btn btn-outline-danger w-100"
+                   onclick="return confirm('Are you sure you want to cancel this booking?')">
+                    <i class="fas fa-times me-2"></i>Cancel Booking
+                </a>
+                {% elif booking.status == 'checked_in' %}
+                <a href="{% url 'dashboard:booking_action' booking.pk 'checkout' %}" 
+                   class="btn btn-warning w-100">
+                    <i class="fas fa-sign-out-alt me-2"></i>Check Out Guest
+                </a>
+                {% elif booking.status == 'checked_out' %}
+                <div class="alert alert-success mb-0">
+                    <i class="fas fa-check-circle me-2"></i>This booking is complete
+                </div>
+                {% elif booking.status == 'cancelled' %}
+                <div class="alert alert-danger mb-0">
+                    <i class="fas fa-times-circle me-2"></i>This booking was cancelled
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="{% url 'dashboard:bookings' %}" class="btn btn-outline-secondary mt-4">
+    <i class="fas fa-arrow-left me-2"></i>Back to Bookings
+</a>
+{% endblock %}

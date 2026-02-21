@@ -1,0 +1,205 @@
+{% extends 'base_site.html' %}
+{% load static %}
+
+{% block title %}Elleden Hotel (K) Limited - Comfort. Class. Convenience.{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" id="home">
+    <div class="hero-overlay"></div>
+    <div class="hero-content container">
+        <h1 class="hero-title">Welcome to <span>Elleden Hotel</span></h1>
+        <p class="hero-subtitle">Comfort. Class. Convenience.</p>
+        <p class="hero-description">Experience premier hospitality in the heart of Marsabit, Kenya</p>
+        <div class="hero-buttons">
+            <a href="{% url 'pages:rooms' %}" class="btn btn-primary">Explore Rooms</a>
+            <a href="{% url 'bookings:book' %}" class="btn btn-outline">Book Now</a>
+        </div>
+    </div>
+    <div class="hero-scroll">
+        <a href="#services"><i class="fas fa-chevron-down"></i></a>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="services section" id="services">
+    <div class="container">
+        <h2 class="section-title">Our Services</h2>
+        <p class="section-subtitle">Experience excellence in every aspect of your stay</p>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-bed"></i>
+                </div>
+                <h3>Accommodation</h3>
+                <p>50 well-appointed standard rooms designed for comfort, tranquility, and a homely atmosphere.</p>
+                <a href="{% url 'pages:rooms' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <h3>Restaurant</h3>
+                <p>Diverse menu featuring local Kenyan dishes, continental and international meals.</p>
+                <a href="{% url 'pages:restaurant' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Conference</h3>
+                <p>Fully equipped conference hall ideal for corporate meetings, seminars, and events.</p>
+                <a href="{% url 'pages:conference' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-concierge-bell"></i>
+                </div>
+                <h3>Outside Catering</h3>
+                <p>Professional catering services for weddings, corporate events, and celebrations.</p>
+                <a href="{% url 'pages:catering' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Preview Section -->
+<section class="about-preview section">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-image">
+                <img src="{% static 'images/hotel-lobby.jpg' %}" alt="Elleden Hotel Lobby">
+                <div class="about-experience">
+                    <span class="experience-number">50+</span>
+                    <span class="experience-text">Rooms</span>
+                </div>
+            </div>
+            <div class="about-content">
+                <h2 class="section-title">About Elleden Hotel</h2>
+                <p>The Elleden Hotel (K) Limited is a premier hospitality establishment located in the heart of Marsabit, Kenya. We offer modern accommodation, exceptional dining, professional conferencing, and reliable outside catering services tailored for business and leisure travelers.</p>
+                <div class="about-features">
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>24/7 Room Service</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>High-Speed Wi-Fi</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Professional Staff</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Secure Environment</span>
+                    </div>
+                </div>
+                <a href="{% url 'pages:about' %}" class="btn btn-primary">Read More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="why-us section">
+    <div class="container">
+        <h2 class="section-title">Why Choose Us</h2>
+        <p class="section-subtitle">Your comfort is our priority</p>
+        <div class="why-grid">
+            <div class="why-card">
+                <div class="why-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>Quality Service</h3>
+                <p>Delivering consistent and superior hospitality with attention to detail.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3>Customer Focus</h3>
+                <p>Every guest is important to us. We provide personalized attention.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Safe & Secure</h3>
+                <p>A secure and serene environment for peace of mind during your stay.</p>
+            </div>
+            <div class="why-card">
+                <div class="why-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h3>Prime Location</h3>
+                <p>Easy access to transportation, tourist attractions, and local businesses.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials section">
+    <div class="container">
+        <h2 class="section-title">What Our Guests Say</h2>
+        <p class="section-subtitle">Real experiences from our valued guests</p>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">"Best place to stay in Marsabit. Great food, great team, and great value."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="author-info">
+                        <h4>Tourist Guest</h4>
+                        <span>Verified Guest</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">"A comfortable and peaceful hotel with excellent customer service. The rooms are clean and spacious."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="author-info">
+                        <h4>Corporate Guest</h4>
+                        <span>Verified Guest</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta section">
+    <div class="cta-overlay"></div>
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to Experience Comfort?</h2>
+            <p>Book your stay at Elleden Hotel today and discover the difference</p>
+            <div class="cta-buttons">
+                <a href="{% url 'bookings:book' %}" class="btn btn-primary">Book Now</a>
+                <a href="tel:+254759435880" class="btn btn-outline"><i class="fas fa-phone"></i> Call Us</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

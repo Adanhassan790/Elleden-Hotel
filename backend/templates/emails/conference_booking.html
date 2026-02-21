@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conference Booking Request Received</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: #d4af37; margin: 0; font-size: 28px;">Elleden Hotel</h1>
+        <p style="color: #fff; margin: 10px 0 0 0; font-size: 14px;">Conference Facilities</p>
+    </div>
+    
+    <div style="background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
+        <h2 style="color: #1a1a2e; margin-top: 0;">Conference Booking Request Received!</h2>
+        
+        <p>Dear <strong>{{ booking.contact_person }}</strong>,</p>
+        
+        <p>Thank you for your interest in booking our conference facilities at Elleden Hotel. We have received your request and our events team will review it shortly.</p>
+        
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #d4af37; margin-top: 0; border-bottom: 2px solid #d4af37; padding-bottom: 10px;">Booking Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Organization:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{{ booking.organization_name }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Event Type:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{{ booking.get_event_type_display }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Date:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{{ booking.event_date|date:"l, F d, Y" }}{% if booking.end_date %} - {{ booking.end_date|date:"l, F d, Y" }}{% endif %}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Time:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Attendees:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{{ booking.attendees }} person(s)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Package:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{{ booking.get_package_display }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Seating:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{{ booking.get_seating_arrangement_display }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Catering:</strong></td>
+                    <td style="padding: 8px 0; border-bottom: 1px solid #eee;">{% if booking.catering_required %}Yes{% else %}No{% endif %}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0;"><strong>AV Equipment:</strong></td>
+                    <td style="padding: 8px 0;">{% if booking.av_equipment_required %}Yes{% else %}No{% endif %}</td>
+                </tr>
+            </table>
+        </div>
+        
+        {% if booking.additional_requirements %}
+        <div style="background: #f0f0f0; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <strong>Additional Requirements:</strong><br>
+            {{ booking.additional_requirements }}
+        </div>
+        {% endif %}
+        
+        <p style="background: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+            <strong>What's Next?</strong><br>
+            Our events team will contact you within 24-48 hours to:
+            <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                <li>Confirm availability</li>
+                <li>Discuss your requirements in detail</li>
+                <li>Provide a quotation</li>
+            </ul>
+        </p>
+        
+        <p>For immediate inquiries, please contact us:</p>
+        <ul style="list-style: none; padding: 0;">
+            <li>📞 <a href="tel:+254759435880" style="color: #1a1a2e;">+254 759 435 880</a></li>
+            <li>📞 <a href="tel:+254707077194" style="color: #1a1a2e;">+254 707 077 194</a></li>
+            <li>📧 <a href="mailto:elledenhotelltd@gmail.com" style="color: #1a1a2e;">elledenhotelltd@gmail.com</a></li>
+        </ul>
+        
+        <p>Thank you for choosing Elleden Hotel for your event!</p>
+        
+        <p style="margin-bottom: 0;">Best regards,<br><strong style="color: #d4af37;">Elleden Hotel Events Team</strong></p>
+    </div>
+    
+    <div style="background: #1a1a2e; padding: 20px; text-align: center; border-radius: 0 0 10px 10px;">
+        <p style="color: #888; margin: 0; font-size: 12px;">
+            Elleden Hotel (K) Limited<br>
+            Marsabit Moyale Highway, Elleden Plaza, Marsabit, Kenya<br>
+            P.O. Box 262 - 60600, Maua, Kenya
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(180deg, var(--dark-color) 0%, var(--primary-dark) 100%);
+    }
+    
+    .sidebar .nav-link {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar .nav-link i {
+        width: 24px;
+    }
+    
+    .sidebar-header {
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-header h4 {
+        color: white;
+        margin: 0;
+    }
+    
+    .main-content {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+    }
+    
+    .top-bar {
+        background: white;
+        padding: 1rem 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        margin-bottom: 1.5rem;
+    }
+    
+    .stat-card {
+        border-radius: 0.5rem;
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stat-card .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .stat-card.rooms .stat-icon {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    
+    .stat-card.bookings .stat-icon {
+        background-color: rgba(0, 123, 255, 0.1);
+        color: #007bff;
+    }
+    
+    .stat-card.revenue .stat-icon {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .stat-card.guests .stat-icon {
+        background-color: rgba(111, 66, 193, 0.1);
+        color: #6f42c1;
+    }
+    
+    .table-responsive {
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .badge-available { background-color: #28a745; }
+    .badge-occupied { background-color: #dc3545; }
+    .badge-maintenance { background-color: #ffc107; color: #212529; }
+    .badge-cleaning { background-color: #17a2b8; }
+    .badge-reserved { background-color: #6c757d; }
+    
+    .badge-pending { background-color: #ffc107; color: #212529; }
+    .badge-confirmed { background-color: #28a745; }
+    .badge-checked_in { background-color: #007bff; }
+    .badge-checked_out { background-color: #6c757d; }
+    .badge-cancelled { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar">
+            <div class="sidebar-header">
+                <h4><i class="fas fa-hotel me-2"></i>Elleden</h4>
+                <small class="text-white-50">Admin Dashboard</small>
+            </div>
+            
+            <nav class="nav flex-column p-3">
+                <a class="nav-link {% if request.resolver_match.url_name == 'admin_index' %}active{% endif %}" 
+                   href="{% url 'dashboard:admin_index' %}">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a class="nav-link {% if 'bookings' in request.path %}active{% endif %}" 
+                   href="{% url 'dashboard:bookings' %}">
+                    <i class="fas fa-calendar-check me-2"></i>Bookings
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'rooms' %}active{% endif %}" 
+                   href="{% url 'dashboard:rooms' %}">
+                    <i class="fas fa-bed me-2"></i>Rooms
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'guests' %}active{% endif %}" 
+                   href="{% url 'dashboard:guests' %}">
+                    <i class="fas fa-users me-2"></i>Guests
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" 
+                   href="{% url 'dashboard:reports' %}">
+                    <i class="fas fa-chart-bar me-2"></i>Reports
+                </a>
+                
+                <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+                
+                <a class="nav-link" href="/admin/" target="_blank">
+                    <i class="fas fa-cog me-2"></i>Django Admin
+                </a>
+                <a class="nav-link" href="/" target="_blank">
+                    <i class="fas fa-globe me-2"></i>View Website
+                </a>
+                <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link" style="background: none; border: none; cursor: pointer; padding: 0.5rem 1rem; width: 100%; text-align: left;">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </button>
+                </form>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 main-content">
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h5>
+                <div class="d-flex align-items-center">
+                    <span class="me-3">
+                        <i class="fas fa-user-circle me-1"></i>
+                        {{ request.user.get_full_name|default:request.user.email }}
+                    </span>
+                    <span class="badge bg-primary">{{ request.user.get_user_type_display }}</span>
+                </div>
+            </div>
+            
+            <div class="px-4 pb-4">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                {% block dashboard_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

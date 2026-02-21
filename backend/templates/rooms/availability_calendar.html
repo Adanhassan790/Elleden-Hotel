@@ -1,0 +1,217 @@
+{% extends 'base_site.html' %}
+{% load static %}
+
+{% block title %}Room Availability Calendar - Elleden Hotel{% endblock %}
+{% block nav_rooms %}active{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+<style>
+    .availability-section {
+        padding: 100px 0 60px;
+    }
+    .calendar-container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-top: 30px;
+    }
+    .filter-section {
+        background: #f8f5f2;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+    .filter-section label {
+        font-weight: 600;
+        color: #333;
+    }
+    .filter-section select {
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        min-width: 200px;
+    }
+    .legend {
+        display: flex;
+        gap: 30px;
+        margin-top: 20px;
+        justify-content: center;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+    .legend-color.available { background: #28a745; }
+    .legend-color.full { background: #dc3545; }
+    #calendar {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+    .fc-event {
+        cursor: pointer;
+        font-size: 12px;
+        padding: 2px 5px;
+    }
+    .fc-toolbar-title {
+        font-family: 'Playfair Display', serif !important;
+        color: #8B7355;
+    }
+    .fc-button-primary {
+        background-color: #8B7355 !important;
+        border-color: #8B7355 !important;
+    }
+    .fc-button-primary:hover {
+        background-color: #6B5344 !important;
+        border-color: #6B5344 !important;
+    }
+    .room-info-popup {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        display: none;
+        z-index: 1000;
+        min-width: 250px;
+    }
+    .room-info-popup.show {
+        display: block;
+    }
+    .room-info-popup h4 {
+        margin: 0 0 10px;
+        color: #8B7355;
+    }
+    .room-info-popup .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 20px;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="availability-section">
+    <div class="container">
+        <h1 class="section-title">Room Availability Calendar</h1>
+        <p class="section-subtitle">Check room availability for your desired dates</p>
+        
+        <div class="filter-section">
+            <div style="display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <div>
+                    <label for="room-type-filter">Filter by Room Type:</label>
+                    <select id="room-type-filter">
+                        <option value="">All Room Types</option>
+                        {% for room_type in room_types %}
+                        <option value="{{ room_type.id }}">{{ room_type.name }} - KES {{ room_type.base_price }}/night</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <a href="{% url 'bookings:book' %}" class="btn btn-primary">
+                    <i class="fas fa-calendar-plus"></i> Make a Booking
+                </a>
+            </div>
+        </div>
+        
+        <div class="calendar-container">
+            <div id="calendar"></div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color available"></div>
+                    <span>Available</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color full"></div>
+                    <span>Fully Booked</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Room Info Popup -->
+<div class="room-info-popup" id="roomInfoPopup">
+    <span class="close-btn" onclick="closePopup()">&times;</span>
+    <h4 id="popupRoomType"></h4>
+    <p><strong>Date:</strong> <span id="popupDate"></span></p>
+    <p><strong>Available:</strong> <span id="popupAvailable"></span> rooms</p>
+    <p><strong>Price:</strong> KES <span id="popupPrice"></span>/night</p>
+    <a href="{% url 'bookings:book' %}" class="btn btn-primary btn-sm" style="margin-top: 10px;">
+        Book Now
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var roomTypeFilter = document.getElementById('room-type-filter');
+        
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,dayGridWeek'
+            },
+            events: function(info, successCallback, failureCallback) {
+                var roomType = roomTypeFilter.value;
+                var url = '{% url "rooms:availability_data" %}?start=' + info.startStr + '&end=' + info.endStr;
+                if (roomType) {
+                    url += '&room_type=' + roomType;
+                }
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => successCallback(data))
+                    .catch(error => failureCallback(error));
+            },
+            eventClick: function(info) {
+                var props = info.event.extendedProps;
+                document.getElementById('popupRoomType').textContent = props.room_type;
+                document.getElementById('popupDate').textContent = info.event.startStr;
+                document.getElementById('popupAvailable').textContent = props.available;
+                document.getElementById('popupPrice').textContent = parseFloat(props.price).toLocaleString();
+                document.getElementById('roomInfoPopup').classList.add('show');
+            },
+            eventDisplay: 'block',
+            dayMaxEvents: 4
+        });
+        
+        calendar.render();
+        
+        // Filter change
+        roomTypeFilter.addEventListener('change', function() {
+            calendar.refetchEvents();
+        });
+    });
+    
+    function closePopup() {
+        document.getElementById('roomInfoPopup').classList.remove('show');
+    }
+    
+    // Close popup when clicking outside
+    document.addEventListener('click', function(e) {
+        var popup = document.getElementById('roomInfoPopup');
+        if (!popup.contains(e.target) && !e.target.closest('.fc-event')) {
+            popup.classList.remove('show');
+        }
+    });
+</script>
+{% endblock %}

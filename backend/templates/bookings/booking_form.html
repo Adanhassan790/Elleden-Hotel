@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Book a Room - Elleden Hotel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--dark-color) 100%);
+        color: white;
+        padding: 3rem 0;
+    }
+    
+    .room-type-card {
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+    
+    .room-type-card:hover,
+    .room-type-card.selected {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .room-type-card.selected {
+        background-color: #fff9f5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="booking-header">
+    <div class="container">
+        <a href="/" class="text-white text-decoration-none mb-3 d-inline-block">
+            <i class="fas fa-arrow-left me-2"></i>Back to Website
+        </a>
+        <h1><i class="fas fa-calendar-plus me-3"></i>Book Your Stay</h1>
+        <p class="mb-0 opacity-75">Reserve your room at Elleden Hotel, Marsabit</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Guest Details -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-user me-2"></i>Guest Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="guest_name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="guest_name" name="guest_name" 
+                                       value="{% if request.user.is_authenticated %}{{ request.user.get_full_name }}{% endif %}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="guest_email" class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" id="guest_email" name="guest_email" 
+                                       value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="guest_phone" class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" id="guest_phone" name="guest_phone" 
+                                       value="{% if request.user.is_authenticated %}{{ request.user.phone }}{% endif %}" 
+                                       placeholder="+254 7XX XXX XXX" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Room Selection -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bed me-2"></i>Select Room Type</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form.room_type }}
+                        {% if form.room_type.errors %}
+                        <div class="text-danger">{{ form.room_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Dates -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Dates & Guests</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="check_in_date" class="form-label">Check-in Date *</label>
+                                <input type="date" class="form-control" id="check_in_date" name="check_in_date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="check_out_date" class="form-label">Check-out Date *</label>
+                                <input type="date" class="form-control" id="check_out_date" name="check_out_date" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="adults" class="form-label">Adults *</label>
+                                <select class="form-select" id="adults" name="adults">
+                                    <option value="1">1 Adult</option>
+                                    <option value="2" selected>2 Adults</option>
+                                    <option value="3">3 Adults</option>
+                                    <option value="4">4 Adults</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="children" class="form-label">Children</label>
+                                <select class="form-select" id="children" name="children">
+                                    <option value="0" selected>No Children</option>
+                                    <option value="1">1 Child</option>
+                                    <option value="2">2 Children</option>
+                                    <option value="3">3 Children</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Special Requests -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-comment-alt me-2"></i>Special Requests</h5>
+                    </div>
+                    <div class="card-body">
+                        <textarea class="form-control" name="special_requests" rows="3" 
+                                  placeholder="Any special requests or requirements..."></textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">
+                    <i class="fas fa-check me-2"></i>Submit Booking Request
+                </button>
+            </form>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Booking Info -->
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Booking Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Check-in Time</h6>
+                    <p class="text-muted">From 2:00 PM</p>
+                    
+                    <h6>Check-out Time</h6>
+                    <p class="text-muted">By 11:00 AM</p>
+                    
+                    <h6>Contact</h6>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-phone me-2"></i>+254 759 435 880
+                    </p>
+                    <p class="text-muted">
+                        <i class="fas fa-envelope me-2"></i>info@elledenhotel.co.ke
+                    </p>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Note:</strong> Your booking will be confirmed once we verify availability. 
+                        You will receive a confirmation email within 24 hours.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('check_in_date').setAttribute('min', today);
+    document.getElementById('check_out_date').setAttribute('min', today);
+    
+    // Update check-out min date when check-in changes
+    document.getElementById('check_in_date').addEventListener('change', function() {
+        const checkIn = new Date(this.value);
+        checkIn.setDate(checkIn.getDate() + 1);
+        document.getElementById('check_out_date').setAttribute('min', checkIn.toISOString().split('T')[0]);
+    });
+</script>
+{% endblock %}

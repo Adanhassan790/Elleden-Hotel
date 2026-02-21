@@ -1,0 +1,106 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Booking Management{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Check-in Date</label>
+                <input type="date" name="date" class="form-control" value="{{ current_date }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Reference, name, email, phone..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-2"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bookings Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reference</th>
+                        <th>Guest</th>
+                        <th>Room</th>
+                        <th>Check In</th>
+                        <th>Check Out</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td><strong>{{ booking.booking_reference }}</strong></td>
+                        <td>
+                            {{ booking.guest_name }}
+                            <br><small class="text-muted">{{ booking.guest_phone }}</small>
+                        </td>
+                        <td>{{ booking.room.room_number }} ({{ booking.room_type.name }})</td>
+                        <td>{{ booking.check_in_date|date:"M d, Y" }}</td>
+                        <td>{{ booking.check_out_date|date:"M d, Y" }}</td>
+                        <td><span class="badge badge-{{ booking.status }}">{{ booking.get_status_display }}</span></td>
+                        <td><span class="badge bg-{{ booking.payment_status }}">{{ booking.get_payment_status_display }}</span></td>
+                        <td>KES {{ booking.total_amount|floatformat:0 }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'dashboard:booking_detail' booking.pk %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if booking.status == 'pending' %}
+                                <a href="{% url 'dashboard:booking_action' booking.pk 'confirm' %}" 
+                                   class="btn btn-sm btn-success" title="Confirm">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                {% elif booking.status == 'confirmed' %}
+                                <a href="{% url 'dashboard:booking_action' booking.pk 'checkin' %}" 
+                                   class="btn btn-sm btn-primary" title="Check In">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                </a>
+                                {% elif booking.status == 'checked_in' %}
+                                <a href="{% url 'dashboard:booking_action' booking.pk 'checkout' %}" 
+                                   class="btn btn-sm btn-warning" title="Check Out">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">No bookings found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
