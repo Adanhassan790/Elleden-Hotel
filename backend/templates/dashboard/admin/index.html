@@ -2,145 +2,318 @@
 
 {% block page_title %}Dashboard Overview{% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .stat-card.conference .stat-icon {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    .stat-card.catering .stat-icon {
+        background-color: rgba(253, 126, 20, 0.1);
+        color: #fd7e14;
+    }
+    .stat-card.restaurant .stat-icon {
+        background-color: rgba(13, 202, 240, 0.1);
+        color: #0dcaf0;
+    }
+    .stat-card.mpesa .stat-icon {
+        background-color: rgba(25, 135, 84, 0.1);
+        color: #198754;
+    }
+    .mini-stat {
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        background: #f8f9fa;
+    }
+    .activity-item {
+        padding: 0.75rem;
+        border-left: 3px solid transparent;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 0 0.25rem 0.25rem 0;
+    }
+    .activity-item.room { border-left-color: #007bff; }
+    .activity-item.conference { border-left-color: #dc3545; }
+    .activity-item.catering { border-left-color: #fd7e14; }
+    .activity-item.restaurant { border-left-color: #0dcaf0; }
+    .nav-tabs .nav-link { 
+        color: #495057;
+        font-weight: 500;
+    }
+    .nav-tabs .nav-link.active {
+        border-bottom: 2px solid var(--primary-color);
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<!-- Stats Cards -->
+<!-- Main Stats Cards Row -->
 <div class="row mb-4">
-    <div class="col-md-6 col-xl-3 mb-3">
-        <div class="card stat-card rooms h-100">
-            <div class="card-body d-flex align-items-center">
-                <div class="stat-icon me-3">
-                    <i class="fas fa-door-open"></i>
-                </div>
-                <div>
-                    <h3 class="mb-0">{{ available_rooms }}/{{ total_rooms }}</h3>
-                    <p class="text-muted mb-0">Rooms Available</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 col-xl-3 mb-3">
-        <div class="card stat-card bookings h-100">
-            <div class="card-body d-flex align-items-center">
-                <div class="stat-icon me-3">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div>
-                    <h3 class="mb-0">{{ todays_checkins }}</h3>
-                    <p class="text-muted mb-0">Today's Check-ins</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+    <!-- Revenue Card -->
     <div class="col-md-6 col-xl-3 mb-3">
         <div class="card stat-card revenue h-100">
             <div class="card-body d-flex align-items-center">
                 <div class="stat-icon me-3">
                     <i class="fas fa-money-bill-wave"></i>
                 </div>
-                <div>
-                    <h3 class="mb-0">KES {{ monthly_revenue|floatformat:0 }}</h3>
-                    <p class="text-muted mb-0">Monthly Revenue</p>
+                <div class="flex-grow-1">
+                    <h3 class="mb-0">KES {{ total_revenue_month|floatformat:0|default:"0" }}</h3>
+                    <p class="text-muted mb-0">This Month's Revenue</p>
+                    <small class="text-success">Total: KES {{ total_revenue_all|floatformat:0|default:"0" }}</small>
                 </div>
             </div>
         </div>
     </div>
     
+    <!-- Room Stats -->
     <div class="col-md-6 col-xl-3 mb-3">
-        <div class="card stat-card guests h-100">
+        <div class="card stat-card rooms h-100">
             <div class="card-body d-flex align-items-center">
                 <div class="stat-icon me-3">
-                    <i class="fas fa-percentage"></i>
+                    <i class="fas fa-bed"></i>
                 </div>
-                <div>
-                    <h3 class="mb-0">{{ occupancy_rate }}%</h3>
-                    <p class="text-muted mb-0">Occupancy Rate</p>
+                <div class="flex-grow-1">
+                    <h3 class="mb-0">{{ available_rooms }}/{{ total_rooms }}</h3>
+                    <p class="text-muted mb-0">Rooms Available</p>
+                    <small class="text-info">{{ occupancy_rate }}% Occupancy</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Today's Activity -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="card stat-card bookings h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="stat-icon me-3">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h3 class="mb-0">{{ todays_checkins }}</h3>
+                    <p class="text-muted mb-0">Today's Check-ins</p>
+                    <small class="text-warning">{{ todays_checkouts }} Check-outs</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- M-Pesa Stats -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="card stat-card mpesa h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="stat-icon me-3">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h3 class="mb-0">{{ total_mpesa_transactions }}</h3>
+                    <p class="text-muted mb-0">M-Pesa Payments</p>
+                    <small class="text-success">KES {{ total_mpesa_amount|floatformat:0|default:"0" }}</small>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Actions & Alerts -->
+<!-- Service Stats Row -->
 <div class="row mb-4">
-    <div class="col-lg-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0"><i class="fas fa-exclamation-circle me-2 text-warning"></i>Requires Attention</h6>
-                <span class="badge bg-warning text-dark">{{ attention_bookings|length }}</span>
-            </div>
-            <div class="card-body p-0">
-                {% if attention_bookings %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <tbody>
-                            {% for booking in attention_bookings %}
-                            <tr>
-                                <td>
-                                    <strong>{{ booking.booking_reference }}</strong>
-                                    <br><small class="text-muted">{{ booking.guest_name }}</small>
-                                </td>
-                                <td>
-                                    <span class="badge badge-{{ booking.status }}">
-                                        {{ booking.get_status_display }}
-                                    </span>
-                                </td>
-                                <td>{{ booking.check_in_date }}</td>
-                                <td>
-                                    <a href="{% url 'dashboard:booking_detail' booking.pk %}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        View
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <!-- Room Bookings -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="card h-100 border-start border-primary border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Room Bookings</h6>
+                    <span class="badge bg-primary">{{ pending_room_bookings }} pending</span>
                 </div>
-                {% else %}
-                <p class="text-muted text-center py-4 mb-0">
-                    <i class="fas fa-check-circle text-success"></i> All caught up!
-                </p>
-                {% endif %}
+                <h4 class="mb-2">{{ total_room_bookings }}</h4>
+                <small class="text-muted">Total bookings</small>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'dashboard:bookings' %}" class="text-decoration-none small">
+                    Manage <i class="fas fa-arrow-right ms-1"></i>
+                </a>
             </div>
         </div>
     </div>
     
-    <div class="col-lg-6 mb-4">
+    <!-- Conference Bookings -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="card h-100 border-start border-danger border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Conferences</h6>
+                    <span class="badge bg-danger">{{ pending_conferences }} pending</span>
+                </div>
+                <h4 class="mb-2">{{ total_conference_bookings }}</h4>
+                <small class="text-muted">{{ upcoming_conferences }} upcoming</small>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'dashboard:conferences' %}" class="text-decoration-none small">
+                    Manage <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Catering Orders -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="card h-100 border-start border-warning border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Catering</h6>
+                    <span class="badge bg-warning text-dark">{{ pending_catering }} pending</span>
+                </div>
+                <h4 class="mb-2">{{ total_catering_orders }}</h4>
+                <small class="text-muted">{{ upcoming_catering }} upcoming</small>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'dashboard:catering' %}" class="text-decoration-none small">
+                    Manage <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Restaurant Reservations -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="card h-100 border-start border-info border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="text-muted mb-0">Restaurant</h6>
+                    <span class="badge bg-info">{{ todays_reservations }} today</span>
+                </div>
+                <h4 class="mb-2">{{ total_reservations }}</h4>
+                <small class="text-muted">{{ upcoming_reservations }} upcoming</small>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{% url 'dashboard:restaurant' %}" class="text-decoration-none small">
+                    Manage <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions & Items Requiring Attention -->
+<div class="row mb-4">
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header">
                 <h6 class="mb-0"><i class="fas fa-bolt me-2 text-primary"></i>Quick Actions</h6>
             </div>
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <a href="{% url 'dashboard:bookings' %}?status=pending" 
-                           class="btn btn-outline-warning w-100 py-3">
-                            <i class="fas fa-clock d-block mb-2 fs-4"></i>
-                            Pending ({{ pending_bookings }})
-                        </a>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'dashboard:bookings' %}?status=pending" class="btn btn-outline-primary text-start">
+                        <i class="fas fa-clock me-2"></i>Pending Room Bookings
+                        <span class="badge bg-primary float-end">{{ pending_room_bookings }}</span>
+                    </a>
+                    <a href="{% url 'dashboard:conferences' %}?status=pending" class="btn btn-outline-danger text-start">
+                        <i class="fas fa-users me-2"></i>Pending Conferences
+                        <span class="badge bg-danger float-end">{{ pending_conferences }}</span>
+                    </a>
+                    <a href="{% url 'dashboard:catering' %}?status=pending" class="btn btn-outline-warning text-start">
+                        <i class="fas fa-utensils me-2"></i>Pending Catering
+                        <span class="badge bg-warning text-dark float-end">{{ pending_catering }}</span>
+                    </a>
+                    <a href="{% url 'dashboard:payments' %}" class="btn btn-outline-success text-start">
+                        <i class="fas fa-credit-card me-2"></i>View All Payments
+                    </a>
+                    <a href="{% url 'dashboard:reports' %}" class="btn btn-outline-info text-start">
+                        <i class="fas fa-chart-line me-2"></i>View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Items Requiring Attention -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-exclamation-circle me-2 text-warning"></i>Requires Attention</h6>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#attention-rooms">
+                            Rooms <span class="badge bg-primary">{{ attention_room_bookings|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#attention-conferences">
+                            Conferences <span class="badge bg-danger">{{ attention_conferences|length }}</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#attention-catering">
+                            Catering <span class="badge bg-warning text-dark">{{ attention_catering|length }}</span>
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <!-- Room Bookings Tab -->
+                    <div class="tab-pane fade show active" id="attention-rooms">
+                        {% for booking in attention_room_bookings %}
+                        <div class="activity-item room">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ booking.booking_reference }}</strong> - {{ booking.guest_name }}
+                                    <br><small class="text-muted">{{ booking.check_in_date }} | {{ booking.room_type.name }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge badge-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                                    <br>
+                                    <a href="{% url 'dashboard:booking_detail' booking.pk %}" class="btn btn-sm btn-outline-primary mt-1">View</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted text-center py-3 mb-0"><i class="fas fa-check-circle text-success me-1"></i>All caught up!</p>
+                        {% endfor %}
                     </div>
-                    <div class="col-6">
-                        <a href="{% url 'dashboard:bookings' %}" 
-                           class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-plus d-block mb-2 fs-4"></i>
-                            New Booking
-                        </a>
+                    
+                    <!-- Conferences Tab -->
+                    <div class="tab-pane fade" id="attention-conferences">
+                        {% for booking in attention_conferences %}
+                        <div class="activity-item conference">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ booking.booking_reference }}</strong> - {{ booking.organization_name }}
+                                    <br><small class="text-muted">{{ booking.event_date }} | {{ booking.attendees }} guests</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge badge-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                                    <br>
+                                    <a href="{% url 'dashboard:conference_detail' booking.pk %}" class="btn btn-sm btn-outline-danger mt-1">View</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted text-center py-3 mb-0"><i class="fas fa-check-circle text-success me-1"></i>All caught up!</p>
+                        {% endfor %}
                     </div>
-                    <div class="col-6">
-                        <a href="{% url 'dashboard:rooms' %}" 
-                           class="btn btn-outline-success w-100 py-3">
-                            <i class="fas fa-bed d-block mb-2 fs-4"></i>
-                            Manage Rooms
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{% url 'dashboard:reports' %}" 
-                           class="btn btn-outline-info w-100 py-3">
-                            <i class="fas fa-chart-line d-block mb-2 fs-4"></i>
-                            View Reports
-                        </a>
+                    
+                    <!-- Catering Tab -->
+                    <div class="tab-pane fade" id="attention-catering">
+                        {% for order in attention_catering %}
+                        <div class="activity-item catering">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ order.booking_reference }}</strong> - {{ order.name }}
+                                    <br><small class="text-muted">{{ order.event_date }} | {{ order.guest_count }} guests | {{ order.package.name }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span>
+                                    <br>
+                                    <a href="{% url 'dashboard:catering_detail' order.pk %}" class="btn btn-sm btn-outline-warning mt-1">View</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted text-center py-3 mb-0"><i class="fas fa-check-circle text-success me-1"></i>All caught up!</p>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -148,51 +321,225 @@
     </div>
 </div>
 
-<!-- Recent Bookings -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0"><i class="fas fa-history me-2"></i>Recent Bookings</h6>
-        <a href="{% url 'dashboard:bookings' %}" class="btn btn-sm btn-primary">View All</a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Reference</th>
-                        <th>Guest</th>
-                        <th>Room</th>
-                        <th>Check In</th>
-                        <th>Check Out</th>
-                        <th>Status</th>
-                        <th>Amount</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for booking in recent_bookings %}
-                    <tr>
-                        <td><strong>{{ booking.booking_reference }}</strong></td>
-                        <td>{{ booking.guest_name }}</td>
-                        <td>{{ booking.room.room_number }} ({{ booking.room_type.name }})</td>
-                        <td>{{ booking.check_in_date|date:"M d, Y" }}</td>
-                        <td>{{ booking.check_out_date|date:"M d, Y" }}</td>
-                        <td><span class="badge badge-{{ booking.status }}">{{ booking.get_status_display }}</span></td>
-                        <td>KES {{ booking.total_amount|floatformat:0 }}</td>
-                        <td>
-                            <a href="{% url 'dashboard:booking_detail' booking.pk %}" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">No bookings yet</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<!-- Recent Activity -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h6>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#recent-rooms">Room Bookings</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recent-conferences">Conferences</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recent-catering">Catering</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recent-restaurant">Restaurant</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recent-payments">Payments</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content">
+                    <!-- Room Bookings -->
+                    <div class="tab-pane fade show active" id="recent-rooms">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Guest</th>
+                                        <th>Room Type</th>
+                                        <th>Check In</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in recent_room_bookings %}
+                                    <tr>
+                                        <td><strong>{{ booking.booking_reference }}</strong></td>
+                                        <td>{{ booking.guest_name }}</td>
+                                        <td>{{ booking.room_type.name }}</td>
+                                        <td>{{ booking.check_in_date|date:"M d" }}</td>
+                                        <td>KES {{ booking.total_amount|floatformat:0 }}</td>
+                                        <td><span class="badge badge-{{ booking.status }}">{{ booking.get_status_display }}</span></td>
+                                        <td><a href="{% url 'dashboard:booking_detail' booking.pk %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="7" class="text-center text-muted">No bookings yet</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{% url 'dashboard:bookings' %}" class="btn btn-sm btn-primary mt-3">View All Room Bookings</a>
+                    </div>
+                    
+                    <!-- Conferences -->
+                    <div class="tab-pane fade" id="recent-conferences">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Organization</th>
+                                        <th>Event Date</th>
+                                        <th>Attendees</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in recent_conferences %}
+                                    <tr>
+                                        <td><strong>{{ booking.booking_reference }}</strong></td>
+                                        <td>{{ booking.organization_name }}</td>
+                                        <td>{{ booking.event_date|date:"M d" }}</td>
+                                        <td>{{ booking.attendees }}</td>
+                                        <td>KES {{ booking.total_amount|floatformat:0 }}</td>
+                                        <td><span class="badge badge-{{ booking.status }}">{{ booking.get_status_display }}</span></td>
+                                        <td><a href="{% url 'dashboard:conference_detail' booking.pk %}" class="btn btn-sm btn-outline-danger"><i class="fas fa-eye"></i></a></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="7" class="text-center text-muted">No conference bookings yet</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{% url 'dashboard:conferences' %}" class="btn btn-sm btn-danger mt-3">View All Conferences</a>
+                    </div>
+                    
+                    <!-- Catering -->
+                    <div class="tab-pane fade" id="recent-catering">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Name</th>
+                                        <th>Package</th>
+                                        <th>Event Date</th>
+                                        <th>Guests</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_catering %}
+                                    <tr>
+                                        <td><strong>{{ order.booking_reference }}</strong></td>
+                                        <td>{{ order.name }}</td>
+                                        <td>{{ order.package.name }}</td>
+                                        <td>{{ order.event_date|date:"M d" }}</td>
+                                        <td>{{ order.guest_count }}</td>
+                                        <td>KES {{ order.total_amount|floatformat:0 }}</td>
+                                        <td><span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                                        <td><a href="{% url 'dashboard:catering_detail' order.pk %}" class="btn btn-sm btn-outline-warning"><i class="fas fa-eye"></i></a></td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="8" class="text-center text-muted">No catering orders yet</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{% url 'dashboard:catering' %}" class="btn btn-sm btn-warning mt-3">View All Catering Orders</a>
+                    </div>
+                    
+                    <!-- Restaurant -->
+                    <div class="tab-pane fade" id="recent-restaurant">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Reference</th>
+                                        <th>Name</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Guests</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in recent_reservations %}
+                                    <tr>
+                                        <td><strong>{{ reservation.booking_reference }}</strong></td>
+                                        <td>{{ reservation.name }}</td>
+                                        <td>{{ reservation.date|date:"M d" }}</td>
+                                        <td>{{ reservation.time|time:"g:i A" }}</td>
+                                        <td>{{ reservation.guests }}</td>
+                                        <td><span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span></td>
+                                        <td>
+                                            {% if reservation.status == 'pending' %}
+                                            <a href="{% url 'dashboard:restaurant_action' reservation.pk 'confirm' %}" class="btn btn-sm btn-success"><i class="fas fa-check"></i></a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="7" class="text-center text-muted">No reservations yet</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{% url 'dashboard:restaurant' %}" class="btn btn-sm btn-info mt-3">View All Reservations</a>
+                    </div>
+                    
+                    <!-- Payments -->
+                    <div class="tab-pane fade" id="recent-payments">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Room Payments</h6>
+                                {% for payment in recent_room_payments %}
+                                <div class="activity-item room">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>KES {{ payment.amount|floatformat:0 }}</strong>
+                                            <br><small class="text-muted">{{ payment.booking.booking_reference }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-success">{{ payment.get_payment_method_display }}</span>
+                                            <br><small class="text-muted">{{ payment.created_at|date:"M d, H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted">No payments yet</p>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-3">Service Payments</h6>
+                                {% for payment in recent_service_payments %}
+                                <div class="activity-item {% if payment.service_type == 'conference' %}conference{% else %}catering{% endif %}">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>KES {{ payment.amount|floatformat:0 }}</strong>
+                                            <br><small class="text-muted">{{ payment.service_type|title }} - {{ payment.reference }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-success">M-Pesa</span>
+                                            <br><small class="text-muted">{{ payment.created_at|date:"M d, H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted">No service payments yet</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <a href="{% url 'dashboard:payments' %}" class="btn btn-sm btn-success mt-3">View All Payments</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

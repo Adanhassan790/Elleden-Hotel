@@ -16,7 +16,27 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-elleden-hotel-change-this-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.railway.app']
+# Allowed hosts - add your production domain
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') + ['.railway.app', '.up.railway.app']
+
+# =============================================================================
+# PRODUCTION SECURITY SETTINGS
+# =============================================================================
+if not DEBUG:
+    # HTTPS settings
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # HSTS settings
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Additional security
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
 
 # Application definition
 INSTALLED_APPS = [
@@ -56,15 +76,13 @@ JAZZMIN_SETTINGS = {
     "site_icon": None,
     "welcome_sign": "Welcome to Elleden Hotel Management System",
     "copyright": "Elleden Hotel (K) Limited",
-    "search_model": ["bookings.Booking", "accounts.User", "rooms.Room"],
+    "search_model": ["bookings.Booking", "accounts.User", "rooms.Room", "pages.ConferenceBooking", "pages.CateringOrder"],
     "user_avatar": None,
     
-    # Top Menu
+    # Top Menu - Links to custom dashboard
     "topmenu_links": [
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "View Site", "url": "/", "new_window": True},
-        {"model": "accounts.User"},
-        {"app": "bookings"},
+        {"name": "Dashboard", "url": "/dashboard/admin/", "icon": "fas fa-tachometer-alt"},
+        {"name": "Website", "url": "/", "new_window": True, "icon": "fas fa-globe"},
     ],
     
     # Side Menu
@@ -72,7 +90,17 @@ JAZZMIN_SETTINGS = {
     "navigation_expanded": True,
     "hide_apps": [],
     "hide_models": [],
-    "order_with_respect_to": ["accounts", "bookings", "rooms"],
+    "order_with_respect_to": ["accounts", "rooms", "bookings", "pages"],
+    
+    # Custom links in sidebar
+    "custom_links": {
+        "bookings": [{
+            "name": "Analytics Dashboard",
+            "url": "/dashboard/admin/",
+            "icon": "fas fa-chart-line",
+            "permissions": ["bookings.view_booking"]
+        }],
+    },
     
     # Icons
     "icons": {
@@ -83,12 +111,28 @@ JAZZMIN_SETTINGS = {
         "bookings.Booking": "fas fa-calendar-check",
         "bookings.payment": "fas fa-credit-card",
         "bookings.Payment": "fas fa-credit-card",
+        "bookings.mpesatransaction": "fas fa-mobile-alt",
+        "bookings.MpesaTransaction": "fas fa-mobile-alt",
         "rooms.room": "fas fa-door-open",
         "rooms.Room": "fas fa-door-open",
         "rooms.roomtype": "fas fa-bed",
         "rooms.RoomType": "fas fa-bed",
         "rooms.roomimage": "fas fa-image",
         "rooms.RoomImage": "fas fa-image",
+        "pages.conferencebooking": "fas fa-users",
+        "pages.ConferenceBooking": "fas fa-users",
+        "pages.cateringorder": "fas fa-utensils",
+        "pages.CateringOrder": "fas fa-utensils",
+        "pages.cateringpackage": "fas fa-box",
+        "pages.CateringPackage": "fas fa-box",
+        "pages.restaurantreservation": "fas fa-concierge-bell",
+        "pages.RestaurantReservation": "fas fa-concierge-bell",
+        "pages.servicepayment": "fas fa-money-bill",
+        "pages.ServicePayment": "fas fa-money-bill",
+        "pages.servicempesatransaction": "fas fa-mobile-alt",
+        "pages.ServiceMpesaTransaction": "fas fa-mobile-alt",
+        "pages.contactinquiry": "fas fa-envelope",
+        "pages.ContactInquiry": "fas fa-envelope",
     },
     "default_icon_parents": "fas fa-chevron-circle-right",
     "default_icon_children": "fas fa-circle",
@@ -117,24 +161,24 @@ JAZZMIN_UI_TWEAKS = {
     "brand_small_text": False,
     "brand_colour": "navbar-dark",
     "accent": "accent-warning",
-    "navbar": "navbar-dark navbar-primary",
-    "no_navbar_border": False,
+    "navbar": "navbar-dark",
+    "no_navbar_border": True,
     "navbar_fixed": True,
     "layout_boxed": False,
     "footer_fixed": False,
     "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-warning",
+    "sidebar": "sidebar-dark-primary",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": False,
+    "sidebar_nav_child_indent": True,
     "sidebar_nav_compact_style": False,
     "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": True,
-    "theme": "darkly",
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
     "dark_mode_theme": "darkly",
     "button_classes": {
         "primary": "btn-primary",
-        "secondary": "btn-secondary",
+        "secondary": "btn-outline-secondary",
         "info": "btn-info",
         "warning": "btn-warning",
         "danger": "btn-danger",
@@ -176,16 +220,21 @@ TEMPLATES = [
 WSGI_APPLICATION = 'elleden.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'elleden_hotel'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+# Use SQLite for local development, PostgreSQL for production
+if os.getenv('DATABASE_URL'):
+    # Production: Use PostgreSQL via DATABASE_URL
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
     }
-}
+else:
+    # Development: Use SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
@@ -226,11 +275,11 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dashboard:customer_index'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
-# CSRF Settings
+# CSRF Settings - Add your Railway domain
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-]
+] + [f'https://{host}' for host in ALLOWED_HOSTS if host and not host.startswith('.')]
 
 # REST Framework
 REST_FRAMEWORK = {
@@ -271,3 +320,43 @@ DEFAULT_FROM_EMAIL = 'Elleden Hotel <elledenhotelltd@gmail.com>'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 # EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+# =============================================================================
+# M-PESA DARAJA API SETTINGS
+# =============================================================================
+# Get credentials from Safaricom Developer Portal: https://developer.safaricom.co.ke
+# 
+# For sandbox (testing):
+# - Create an app in the developer portal
+# - Use sandbox credentials for testing
+#
+# For production:
+# - Apply for production credentials (Go Live)
+# - Set MPESA_ENVIRONMENT to 'production'
+# =============================================================================
+
+MPESA_ENVIRONMENT = os.getenv('MPESA_ENVIRONMENT', 'sandbox')  # 'sandbox' or 'production'
+MPESA_CONSUMER_KEY = os.getenv('MPESA_CONSUMER_KEY', '')
+MPESA_CONSUMER_SECRET = os.getenv('MPESA_CONSUMER_SECRET', '')
+MPESA_SHORTCODE = os.getenv('MPESA_SHORTCODE', '174379')  # Sandbox default
+MPESA_PASSKEY = os.getenv('MPESA_PASSKEY', 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919')  # Sandbox default
+
+# Callback URL - This must be a publicly accessible URL
+# Use ngrok for local testing: ngrok http 8000
+# Example: https://your-ngrok-url.ngrok.io/bookings/mpesa/callback/
+MPESA_CALLBACK_URL = os.getenv('MPESA_CALLBACK_URL', 'https://your-domain.com/bookings/mpesa/callback/')
+
+# =============================================================================
+# AFRICA'S TALKING SMS SETTINGS
+# =============================================================================
+# Sign up at https://account.africastalking.com
+# For testing: Use 'sandbox' as username and get your sandbox API key
+# For production: Use your registered username and production API key
+#
+# Sender ID - Only for production. Apply for a shortcode/sender ID via the portal
+# =============================================================================
+
+AFRICASTALKING_USERNAME = os.getenv('AFRICASTALKING_USERNAME', 'sandbox')
+AFRICASTALKING_API_KEY = os.getenv('AFRICASTALKING_API_KEY', '')
+AFRICASTALKING_SENDER_ID = os.getenv('AFRICASTALKING_SENDER_ID', '')  # Optional: e.g., 'ELLEDEN'
+

@@ -225,20 +225,61 @@
     <div class="container">
         <div class="cta-content">
             <h2>Let Us Cater Your Next Event</h2>
-            <p>Contact us for a customized catering quote</p>
+            <p>Choose a package or contact us for a customized quote</p>
             <div class="cta-buttons">
-                <a href="#inquiry-form" class="btn btn-primary">Get Quote</a>
+                <a href="#packages" class="btn btn-primary">View Packages</a>
                 <a href="tel:+254759435880" class="btn btn-outline"><i class="fas fa-phone"></i> Call Us</a>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Catering Inquiry Form -->
-<section class="inquiry-section section" id="inquiry-form">
+<!-- Catering Packages Section -->
+<section class="catering-packages section" id="packages">
     <div class="container">
-        <h2 class="section-title">Request a Catering Quote</h2>
-        <p class="section-subtitle">Tell us about your event and we'll prepare a customized quote</p>
+        <h2 class="section-title">Our Catering Packages</h2>
+        <p class="section-subtitle">Choose from our pre-designed packages or request a custom quote</p>
+        
+        {% if packages %}
+        <div class="packages-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            {% for package in packages %}
+            <div class="package-card" style="background: #fff; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s;">
+                <div class="package-header" style="background: linear-gradient(135deg, #c9a227 0%, #8a6d1b 100%); color: #fff; padding: 25px; text-align: center;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 1.5rem;">{{ package.name }}</h3>
+                    <div class="price" style="font-size: 2rem; font-weight: bold;">
+                        KES {{ package.price_per_person|floatformat:0 }}<span style="font-size: 0.9rem; font-weight: normal;">/person</span>
+                    </div>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Min {{ package.min_guests }} guests</p>
+                </div>
+                <div class="package-body" style="padding: 25px;">
+                    <p style="color: #666; margin-bottom: 15px;">{{ package.description }}</p>
+                    {% if package.menu_items %}
+                    <div class="menu-items" style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h5 style="margin: 0 0 10px 0; color: #333;"><i class="fas fa-utensils"></i> Menu Includes:</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #666;">{{ package.menu_items }}</p>
+                    </div>
+                    {% endif %}
+                    <a href="#order-form" class="btn btn-primary w-100 select-package-btn" data-package-id="{{ package.id }}" data-package-name="{{ package.name }}" data-package-price="{{ package.price_per_person }}" style="display: block; text-align: center;">
+                        <i class="fas fa-shopping-cart"></i> Select Package
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            Catering packages coming soon! For now, please fill out the inquiry form below for a custom quote.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Catering Order Form -->
+<section class="inquiry-section section" id="order-form">
+    <div class="container">
+        <h2 class="section-title">Place Your Catering Order</h2>
+        <p class="section-subtitle">Fill out the form below to book your catering service</p>
         
         <div class="inquiry-form-wrapper">
             {% if messages %}
@@ -271,6 +312,16 @@
                 </div>
                 
                 <div class="form-section">
+                    <h3><i class="fas fa-box"></i> Package Selection</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="id_package">Select Package *</label>
+                            {{ form.package }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
                     <h3><i class="fas fa-calendar-alt"></i> Event Details</h3>
                     <div class="form-grid">
                         <div class="form-group">
@@ -290,41 +341,109 @@
                             {{ form.guest_count }}
                         </div>
                         <div class="form-group full-width">
-                            <label for="id_venue_address">Event Venue/Location *</label>
+                            <label for="id_venue_address">Venue/Delivery Address *</label>
                             {{ form.venue_address }}
                         </div>
                     </div>
                 </div>
                 
                 <div class="form-section">
-                    <h3><i class="fas fa-utensils"></i> Catering Requirements</h3>
+                    <h3><i class="fas fa-clipboard-list"></i> Additional Information</h3>
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label for="id_service_type">Service Type *</label>
-                            {{ form.service_type }}
-                        </div>
-                        <div class="form-group">
-                            <label for="id_budget_range">Budget Range (Optional)</label>
-                            {{ form.budget_range }}
-                        </div>
                         <div class="form-group full-width">
-                            <label for="id_menu_preferences">Menu Preferences</label>
-                            {{ form.menu_preferences }}
+                            <label for="id_special_requests">Special Requests / Dietary Requirements</label>
+                            {{ form.special_requests }}
                         </div>
-                        <div class="form-group full-width">
-                            <label for="id_additional_services">Additional Services Needed</label>
-                            {{ form.additional_services }}
-                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="form-section" id="order-summary" style="background: #f8f9fa; padding: 20px; border-radius: 10px; display: none;">
+                    <h3><i class="fas fa-receipt"></i> Order Summary</h3>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Package:</span>
+                        <strong id="summary-package">-</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Price per person:</span>
+                        <strong>KES <span id="summary-price">0</span></strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>Number of guests:</span>
+                        <strong id="summary-guests">0</strong>
+                    </div>
+                    <hr>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.2rem;">
+                        <span>Estimated Total:</span>
+                        <strong class="text-success">KES <span id="summary-total">0</span></strong>
                     </div>
                 </div>
                 
                 <div class="form-submit">
                     <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-paper-plane"></i> Request Quote
+                        <i class="fas fa-paper-plane"></i> Place Order
                     </button>
+                    <p class="text-muted mt-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-lock"></i> You can pay securely via M-Pesa after placing your order
+                    </p>
                 </div>
             </form>
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const packageSelect = document.getElementById('id_package');
+    const guestInput = document.getElementById('id_guest_count');
+    const orderSummary = document.getElementById('order-summary');
+    
+    // Package data
+    const packages = {
+        {% for package in packages %}
+        '{{ package.id }}': {
+            name: '{{ package.name }}',
+            price: {{ package.price_per_person }}
+        },
+        {% endfor %}
+    };
+    
+    // Handle package selection from cards
+    document.querySelectorAll('.select-package-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const packageId = this.dataset.packageId;
+            if (packageSelect) {
+                packageSelect.value = packageId;
+                packageSelect.dispatchEvent(new Event('change'));
+            }
+            document.getElementById('order-form').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+    
+    function updateSummary() {
+        const packageId = packageSelect ? packageSelect.value : '';
+        const guests = parseInt(guestInput ? guestInput.value : 0) || 0;
+        
+        if (packageId && packages[packageId] && guests > 0) {
+            const pkg = packages[packageId];
+            const total = pkg.price * guests;
+            
+            document.getElementById('summary-package').textContent = pkg.name;
+            document.getElementById('summary-price').textContent = pkg.price.toLocaleString();
+            document.getElementById('summary-guests').textContent = guests;
+            document.getElementById('summary-total').textContent = total.toLocaleString();
+            orderSummary.style.display = 'block';
+        } else {
+            orderSummary.style.display = 'none';
+        }
+    }
+    
+    if (packageSelect) packageSelect.addEventListener('change', updateSummary);
+    if (guestInput) guestInput.addEventListener('input', updateSummary);
+    
+    // Initial update
+    updateSummary();
+});
+</script>
 {% endblock %}

@@ -149,15 +149,112 @@ backend/
 | Twin Room   | 5,500       | 2             |
 | Family Suite| 7,500       | 4             |
 
-## Production Deployment
+## M-Pesa Payment Integration
 
-1. Set `DEBUG=False` in .env
-2. Configure `ALLOWED_HOSTS`
-3. Use PostgreSQL database
-4. Set up proper email backend
-5. Configure CORS for your domain
-6. Run `python manage.py collectstatic`
-7. Use gunicorn with nginx
+The system includes M-Pesa STK Push (Lipa Na M-Pesa) for online payments.
+
+### Setup
+
+1. **Get Daraja API Credentials**
+   - Register at [Safaricom Developer Portal](https://developer.safaricom.co.ke)
+   - Create a new app and get Consumer Key & Secret
+   - For production, apply for Go Live
+
+2. **Configure Environment Variables**
+   ```env
+   MPESA_ENVIRONMENT=sandbox  # or 'production'
+   MPESA_CONSUMER_KEY=your-consumer-key
+   MPESA_CONSUMER_SECRET=your-consumer-secret
+   MPESA_SHORTCODE=174379  # Your paybill number
+   MPESA_PASSKEY=your-passkey
+   MPESA_CALLBACK_URL=https://your-domain.com/bookings/mpesa/callback/
+   ```
+
+3. **For Local Testing**
+   - Use [ngrok](https://ngrok.com) to expose your local server
+   - Run: `ngrok http 8000`
+   - Set `MPESA_CALLBACK_URL` to your ngrok URL
+
+### Payment Flow
+1. Guest makes a booking
+2. Guest clicks "Pay with M-Pesa" on confirmation page
+3. Enters phone number and amount
+4. Receives STK push prompt on phone
+5. Enters M-Pesa PIN
+6. Payment confirmed and booking status updated
+
+### Sandbox Testing
+- Use test phone number: 254708374149
+- M-Pesa PIN: Any 4 digits
+
+## Production Deployment (Railway)
+
+### Quick Deploy to Railway
+
+1. **Create Railway Account**
+   - Go to [Railway](https://railway.app) and sign up
+   - Connect your GitHub account
+
+2. **Deploy from GitHub**
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select your repository
+   - Railway auto-detects Django and deploys
+
+3. **Add PostgreSQL Database**
+   - In your project, click "+ Add" → "Database" → "PostgreSQL"
+   - Railway automatically sets `DATABASE_URL`
+
+4. **Set Environment Variables**
+   Go to "Variables" tab and add:
+   ```
+   SECRET_KEY=<generate-secure-key>
+   DEBUG=False
+   ALLOWED_HOSTS=<your-app>.up.railway.app
+   MPESA_ENVIRONMENT=production
+   MPESA_CONSUMER_KEY=<your-key>
+   MPESA_CONSUMER_SECRET=<your-secret>
+   MPESA_SHORTCODE=<your-paybill>
+   MPESA_PASSKEY=<your-passkey>
+   MPESA_CALLBACK_URL=https://<your-app>.up.railway.app/bookings/mpesa/callback/
+   AFRICASTALKING_USERNAME=<your-username>
+   AFRICASTALKING_API_KEY=<your-api-key>
+   AFRICASTALKING_SENDER_ID=<your-sender-id>
+   ```
+
+5. **Generate Domain**
+   - Go to "Settings" → "Networking" → "Generate Domain"
+   - Your app will be live at `https://<your-app>.up.railway.app`
+
+6. **Create Admin User**
+   - Go to Railway project → Settings → Run command:
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+### Post-Deployment Steps
+
+1. **Seed Room Data**
+   ```bash
+   python manage.py seed_rooms
+   ```
+
+2. **Update M-Pesa Callback URL**
+   - Go to Safaricom Developer Portal
+   - Update callback URL to: `https://<your-app>.up.railway.app/bookings/mpesa/callback/`
+
+3. **Test SMS Integration**
+   - Switch Africa's Talking to production mode
+   - Test with a real phone number
+
+### Production Checklist
+
+- [ ] DEBUG=False
+- [ ] Strong SECRET_KEY generated
+- [ ] PostgreSQL database connected
+- [ ] M-Pesa Go Live credentials
+- [ ] Africa's Talking production credentials
+- [ ] SSL/HTTPS enabled (automatic on Railway)
+- [ ] Custom domain configured (optional)
 
 ## Contact
 

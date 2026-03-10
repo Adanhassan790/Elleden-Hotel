@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Reservation Confirmed - Elleden Hotel{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/static/images/dining%20area.jpeg') center/cover;">
+    <div class="container">
+        <h1>Reservation Confirmed</h1>
+        <p>Thank you for your reservation</p>
+    </div>
+</section>
+
+<section class="confirmation-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg">
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                        </div>
+                        <h2 class="mb-4">Your Reservation is Confirmed!</h2>
+                        <p class="text-muted mb-4">Reference: <strong>{{ reservation.booking_reference }}</strong></p>
+                        
+                        <div class="reservation-details bg-light p-4 rounded mb-4 text-start">
+                            <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Reservation Details</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Name:</strong></p>
+                                    <p class="text-muted">{{ reservation.name }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Email:</strong></p>
+                                    <p class="text-muted">{{ reservation.email }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Phone:</strong></p>
+                                    <p class="text-muted">{{ reservation.phone }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Number of Guests:</strong></p>
+                                    <p class="text-muted">{{ reservation.guests }} people</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Date:</strong></p>
+                                    <p class="text-muted">{{ reservation.date|date:"l, F j, Y" }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Time:</strong></p>
+                                    <p class="text-muted">{{ reservation.time }}</p>
+                                </div>
+                                {% if reservation.special_requests %}
+                                <div class="col-12">
+                                    <p class="mb-1"><strong>Special Requests:</strong></p>
+                                    <p class="text-muted">{{ reservation.special_requests }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Payment:</strong> Please pay at the restaurant after your meal.
+                        </div>
+                        
+                        <p class="text-muted mb-4">A confirmation email has been sent to {{ reservation.email }}</p>
+                        
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="{% url 'pages:restaurant' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Restaurant
+                            </a>
+                            <a href="/" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i>Back to Home
+                            </a>
+                            {% if request.user.is_authenticated %}
+                            <a href="{% url 'dashboard:customer_index' %}" class="btn btn-success">
+                                <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                            </a>
+                            {% else %}
+                            <a href="{% url 'accounts:signup' %}" class="btn btn-info">
+                                <i class="fas fa-user-plus me-2"></i>Create Account to Track Bookings
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

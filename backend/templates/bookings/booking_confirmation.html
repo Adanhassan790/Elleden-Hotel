@@ -104,6 +104,31 @@
                         </div>
                     </div>
                     
+                    {% if booking.balance_due > 0 %}
+                    <hr>
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <span class="text-muted">Payment Status:</span>
+                            <span class="badge bg-{% if booking.payment_status == 'paid' %}success{% elif booking.payment_status == 'partial' %}warning{% else %}secondary{% endif %}">
+                                {{ booking.get_payment_status_display }}
+                            </span>
+                            {% if booking.amount_paid > 0 %}
+                            <br><small class="text-success">Paid: KES {{ booking.amount_paid|floatformat:0 }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <a href="{% url 'bookings:payment' booking.pk %}" class="btn btn-success">
+                                <i class="fas fa-mobile-alt me-2"></i>Pay KES {{ booking.balance_due|floatformat:0 }} with M-Pesa
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <hr>
+                    <div class="text-center">
+                        <span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i> Fully Paid</span>
+                    </div>
+                    {% endif %}
+                    
                     {% if booking.special_requests %}
                     <hr>
                     <h6 class="text-muted">Special Requests</h6>

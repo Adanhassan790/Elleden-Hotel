@@ -3,63 +3,88 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --sidebar-dark: #1e1e2d;
+        --sidebar-darker: #151521;
+        --elleden-primary: #8B7355;
+        --elleden-gold: #D4AF37;
+    }
+    
     .sidebar {
         min-height: 100vh;
-        background: linear-gradient(180deg, var(--dark-color) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(180deg, var(--sidebar-dark) 0%, var(--sidebar-darker) 100%);
+        box-shadow: 2px 0 15px rgba(0,0,0,0.1);
     }
     
     .sidebar .nav-link {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(255, 255, 255, 0.75);
         padding: 0.75rem 1rem;
-        border-radius: 0.25rem;
-        margin-bottom: 0.25rem;
+        border-radius: 8px;
+        margin: 2px 8px;
+        transition: all 0.3s ease;
     }
     
-    .sidebar .nav-link:hover,
+    .sidebar .nav-link:hover {
+        color: white;
+        background-color: rgba(139, 115, 85, 0.25);
+    }
+    
     .sidebar .nav-link.active {
         color: white;
-        background-color: rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, var(--elleden-primary) 0%, #5a4a3a 100%);
+        box-shadow: 0 4px 15px rgba(139, 115, 85, 0.3);
     }
     
     .sidebar .nav-link i {
         width: 24px;
+        color: var(--elleden-gold);
     }
     
     .sidebar-header {
         padding: 1.5rem 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(0,0,0,0.15);
     }
     
     .sidebar-header h4 {
         color: white;
         margin: 0;
+        font-weight: 700;
+    }
+    
+    .sidebar-header small {
+        color: var(--elleden-gold) !important;
     }
     
     .main-content {
-        background-color: #f8f9fa;
+        background-color: #f4f6f9;
         min-height: 100vh;
     }
     
     .top-bar {
         background: white;
         padding: 1rem 1.5rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         margin-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
     }
     
     .stat-card {
-        border-radius: 0.5rem;
-        transition: transform 0.2s;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.06);
     }
     
     .stat-card:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
     }
     
     .stat-card .stat-icon {
         width: 60px;
         height: 60px;
-        border-radius: 50%;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -77,8 +102,8 @@
     }
     
     .stat-card.revenue .stat-icon {
-        background-color: rgba(255, 193, 7, 0.1);
-        color: #ffc107;
+        background-color: rgba(212, 175, 55, 0.15);
+        color: var(--elleden-gold);
     }
     
     .stat-card.guests .stat-icon {
@@ -87,8 +112,21 @@
     }
     
     .table-responsive {
-        border-radius: 0.5rem;
+        border-radius: 12px;
         overflow: hidden;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.06);
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, var(--elleden-primary) 0%, #5a4a3a 100%);
+        color: white;
+        font-weight: 600;
+        border-radius: 12px 12px 0 0 !important;
     }
     
     .badge-available { background-color: #28a745; }
@@ -120,13 +158,35 @@
                    href="{% url 'dashboard:admin_index' %}">
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                 </a>
-                <a class="nav-link {% if 'bookings' in request.path %}active{% endif %}" 
+                
+                <small class="text-white-50 text-uppercase mt-3 mb-2 px-2">Rooms</small>
+                <a class="nav-link {% if 'bookings' in request.path and 'conference' not in request.path %}active{% endif %}" 
                    href="{% url 'dashboard:bookings' %}">
-                    <i class="fas fa-calendar-check me-2"></i>Bookings
+                    <i class="fas fa-calendar-check me-2"></i>Room Bookings
                 </a>
                 <a class="nav-link {% if request.resolver_match.url_name == 'rooms' %}active{% endif %}" 
                    href="{% url 'dashboard:rooms' %}">
                     <i class="fas fa-bed me-2"></i>Rooms
+                </a>
+                
+                <small class="text-white-50 text-uppercase mt-3 mb-2 px-2">Services</small>
+                <a class="nav-link {% if 'conference' in request.path %}active{% endif %}" 
+                   href="{% url 'dashboard:conferences' %}">
+                    <i class="fas fa-users-class me-2"></i>Conferences
+                </a>
+                <a class="nav-link {% if 'catering' in request.path %}active{% endif %}" 
+                   href="{% url 'dashboard:catering' %}">
+                    <i class="fas fa-utensils me-2"></i>Catering
+                </a>
+                <a class="nav-link {% if 'restaurant' in request.path %}active{% endif %}" 
+                   href="{% url 'dashboard:restaurant' %}">
+                    <i class="fas fa-concierge-bell me-2"></i>Restaurant
+                </a>
+                
+                <small class="text-white-50 text-uppercase mt-3 mb-2 px-2">Management</small>
+                <a class="nav-link {% if 'payments' in request.path %}active{% endif %}" 
+                   href="{% url 'dashboard:payments' %}">
+                    <i class="fas fa-credit-card me-2"></i>Payments
                 </a>
                 <a class="nav-link {% if request.resolver_match.url_name == 'guests' %}active{% endif %}" 
                    href="{% url 'dashboard:guests' %}">
@@ -139,8 +199,9 @@
                 
                 <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
                 
-                <a class="nav-link" href="/admin/" target="_blank">
-                    <i class="fas fa-cog me-2"></i>Django Admin
+                <small class="text-white-50 text-uppercase mb-2 px-2">System</small>
+                <a class="nav-link" href="/admin/" style="background: rgba(212, 175, 55, 0.2); border: 1px solid rgba(212, 175, 55, 0.3);">
+                    <i class="fas fa-database me-2" style="color: #D4AF37;"></i>Data Admin
                 </a>
                 <a class="nav-link" href="/" target="_blank">
                     <i class="fas fa-globe me-2"></i>View Website

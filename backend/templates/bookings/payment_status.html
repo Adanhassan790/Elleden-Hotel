@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Status - Elleden Hotel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-header {
+        padding: 3rem 0;
+    }
+    
+    .status-header.pending {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #212529;
+    }
+    
+    .status-header.success {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+    }
+    
+    .status-header.failed {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+    
+    .status-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .status-icon.pending {
+        animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .spinner-border-lg {
+        width: 4rem;
+        height: 4rem;
+        border-width: 0.4rem;
+    }
+    
+    .receipt-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #28a745;
+        letter-spacing: 1px;
+    }
+    
+    .countdown {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="status-header text-center" id="status-header">
+    <div class="container">
+        <div id="status-icon">
+            {% if transaction.status == 'pending' %}
+            <div class="spinner-border spinner-border-lg text-dark" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            {% elif transaction.status == 'completed' %}
+            <i class="fas fa-check-circle status-icon"></i>
+            {% else %}
+            <i class="fas fa-times-circle status-icon"></i>
+            {% endif %}
+        </div>
+        <h1 id="status-title">
+            {% if transaction.status == 'pending' %}
+            Waiting for Payment...
+            {% elif transaction.status == 'completed' %}
+            Payment Successful!
+            {% else %}
+            Payment Failed
+            {% endif %}
+        </h1>
+        <p id="status-subtitle" class="mb-0 opacity-75">
+            {% if transaction.status == 'pending' %}
+            Please check your phone and enter your M-Pesa PIN
+            {% elif transaction.status == 'completed' %}
+            Your payment has been received
+            {% else %}
+            {{ transaction.result_description }}
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Transaction Details -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Transaction Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Booking Reference</span>
+                        <strong>{{ booking.booking_reference }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Phone Number</span>
+                        <span>{{ transaction.phone_number }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Amount</span>
+                        <strong>KES {{ transaction.amount|floatformat:0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Status</span>
+                        <span id="transaction-status" class="badge bg-{% if transaction.status == 'pending' %}warning{% elif transaction.status == 'completed' %}success{% else %}danger{% endif %}">
+                            {{ transaction.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div id="receipt-section" class="{% if transaction.status != 'completed' %}d-none{% endif %}">
+                        <hr>
+                        <div class="text-center">
+                            <p class="text-muted mb-1">M-Pesa Receipt Number</p>
+                            <p class="receipt-number" id="receipt-number">{{ transaction.mpesa_receipt_number }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Summary Card (shows after success) -->
+            <div class="card mt-4" id="payment-summary" {% if transaction.status != 'completed' %}style="display: none;"{% endif %}>
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check me-2"></i>Payment Confirmed</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Amount</span>
+                        <span>KES {{ booking.total_amount|floatformat:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Amount Paid</span>
+                        <span class="text-success" id="amount-paid">KES {{ booking.amount_paid|floatformat:0 }}</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Balance Due</strong>
+                        <strong id="balance-due">KES {{ booking.balance_due|floatformat:0 }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Instructions -->
+            <div class="card mt-4" id="pending-instructions" {% if transaction.status != 'pending' %}style="display: none;"{% endif %}>
+                <div class="card-body">
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-mobile-alt me-2"></i>
+                        <strong>Check your phone!</strong> 
+                        An M-Pesa prompt has been sent to {{ transaction.phone_number }}
+                    </div>
+                    
+                    <h6>Didn't receive the prompt?</h6>
+                    <ul class="mb-3">
+                        <li>Make sure your phone is on and has network</li>
+                        <li>Check if you have sufficient M-Pesa balance</li>
+                        <li>The prompt expires in 60 seconds</li>
+                    </ul>
+                    
+                    <p class="countdown text-center mb-0" id="countdown">
+                        Checking payment status...
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="text-center mt-4" id="action-buttons">
+                {% if transaction.status == 'pending' %}
+                <a href="{% url 'bookings:payment' booking.pk %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-redo me-2"></i>Try Again
+                </a>
+                {% elif transaction.status == 'completed' %}
+                {% if booking.balance_due > 0 %}
+                <a href="{% url 'bookings:payment' booking.pk %}" class="btn btn-success me-2">
+                    <i class="fas fa-plus me-2"></i>Pay Remaining Balance
+                </a>
+                {% endif %}
+                <a href="{% url 'bookings:confirmation' booking.pk %}" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i>View Booking
+                </a>
+                {% else %}
+                <a href="{% url 'bookings:payment' booking.pk %}" class="btn btn-primary me-2">
+                    <i class="fas fa-redo me-2"></i>Try Again
+                </a>
+                <a href="{% url 'bookings:confirmation' booking.pk %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Booking
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if transaction.status == 'pending' %}
+<script>
+const checkoutId = "{{ checkout_id }}";
+const checkStatusUrl = "{% url 'bookings:check_payment_status' checkout_id %}";
+let checkCount = 0;
+const maxChecks = 60; // Check for 2 minutes (every 2 seconds)
+
+function updateUI(data) {
+    const header = document.getElementById('status-header');
+    const statusIcon = document.getElementById('status-icon');
+    const title = document.getElementById('status-title');
+    const subtitle = document.getElementById('status-subtitle');
+    const transactionStatus = document.getElementById('transaction-status');
+    const receiptSection = document.getElementById('receipt-section');
+    const receiptNumber = document.getElementById('receipt-number');
+    const paymentSummary = document.getElementById('payment-summary');
+    const pendingInstructions = document.getElementById('pending-instructions');
+    const actionButtons = document.getElementById('action-buttons');
+    const amountPaid = document.getElementById('amount-paid');
+    const balanceDue = document.getElementById('balance-due');
+    
+    if (data.status === 'completed') {
+        // Success
+        header.className = 'status-header text-center success';
+        statusIcon.innerHTML = '<i class="fas fa-check-circle status-icon"></i>';
+        title.textContent = 'Payment Successful!';
+        subtitle.textContent = 'Your payment has been received';
+        
+        transactionStatus.className = 'badge bg-success';
+        transactionStatus.textContent = 'Completed';
+        
+        receiptSection.classList.remove('d-none');
+        receiptNumber.textContent = data.receipt;
+        
+        paymentSummary.style.display = 'block';
+        pendingInstructions.style.display = 'none';
+        
+        amountPaid.textContent = 'KES ' + data.amount_paid;
+        balanceDue.textContent = 'KES ' + data.balance_due;
+        
+        // Update action buttons
+        let buttons = '';
+        if (parseFloat(data.balance_due) > 0) {
+            buttons += '<a href="{% url "bookings:payment" booking.pk %}" class="btn btn-success me-2"><i class="fas fa-plus me-2"></i>Pay Remaining Balance</a>';
+        }
+        buttons += '<a href="{% url "bookings:confirmation" booking.pk %}" class="btn btn-primary"><i class="fas fa-check me-2"></i>View Booking</a>';
+        actionButtons.innerHTML = buttons;
+        
+        return false; // Stop checking
+    } else if (data.status === 'failed' || data.status === 'cancelled') {
+        // Failed
+        header.className = 'status-header text-center failed';
+        statusIcon.innerHTML = '<i class="fas fa-times-circle status-icon"></i>';
+        title.textContent = 'Payment Failed';
+        subtitle.textContent = 'The payment was not completed';
+        
+        transactionStatus.className = 'badge bg-danger';
+        transactionStatus.textContent = data.status === 'failed' ? 'Failed' : 'Cancelled';
+        
+        pendingInstructions.style.display = 'none';
+        
+        actionButtons.innerHTML = `
+            <a href="{% url 'bookings:payment' booking.pk %}" class="btn btn-primary me-2">
+                <i class="fas fa-redo me-2"></i>Try Again
+            </a>
+            <a href="{% url 'bookings:confirmation' booking.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Booking
+            </a>
+        `;
+        
+        return false; // Stop checking
+    }
+    
+    return true; // Continue checking
+}
+
+function checkPaymentStatus() {
+    checkCount++;
+    
+    if (checkCount > maxChecks) {
+        document.getElementById('countdown').innerHTML = `
+            <span class="text-warning">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Taking longer than expected. 
+                <a href="javascript:location.reload()">Refresh</a> or 
+                <a href="{% url 'bookings:payment' booking.pk %}">try again</a>.
+            </span>
+        `;
+        return;
+    }
+    
+    fetch(checkStatusUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (updateUI(data)) {
+                // Continue checking
+                document.getElementById('countdown').textContent = 
+                    `Checking payment status... (${maxChecks - checkCount} seconds remaining)`;
+                setTimeout(checkPaymentStatus, 2000);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking status:', error);
+            setTimeout(checkPaymentStatus, 3000);
+        });
+}
+
+// Start checking after 3 seconds
+setTimeout(checkPaymentStatus, 3000);
+</script>
+{% endif %}
+{% endblock %}

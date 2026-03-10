@@ -177,3 +177,69 @@ class Payment(models.Model):
         # Update booking's amount_paid
         self.booking.amount_paid = sum(p.amount for p in self.booking.payments.all())
         self.booking.save()
+
+
+class MpesaTransaction(models.Model):
+    """
+    Track M-Pesa STK Push transactions
+    """
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='mpesa_transactions')
+    phone_number = models.CharField(max_length=15)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # M-Pesa Request IDs
+    merchant_request_id = models.CharField(max_length=100, blank=True)
+    checkout_request_id = models.CharField(max_length=100, unique=True)
+    
+    # Transaction result
+    mpesa_receipt_number = models.CharField(max_length=50, blank=True)
+    result_code = models.IntegerField(null=True, blank=True)
+    result_description = models.TextField(blank=True)
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'M-Pesa Transaction'
+        verbose_name_plural = 'M-Pesa Transactions'
+    
+    def __str__(self):
+        return f'{self.booking.booking_reference} - {self.mpesa_receipt_number or self.checkout_request_id}'
+    
+    def mark_completed(self, mpesa_receipt, result_desc=''):
+        """Mark transaction as completed and create Payment record"""
+        self.status = 'completed'
+        self.mpesa_receipt_number = mpesa_receipt
+        self.result_code = 0
+        self.result_description = result_desc
+        self.save()
+        
+        # Create Payment record
+        Payment.objects.create(
+            booking=self.booking,
+            amount=self.amount,
+            payment_method='mpesa',
+            transaction_reference=mpesa_receipt,
+            notes=f'M-Pesa STK Push payment from {self.phone_number}'
+        )
+        
+        # Confirm booking if fully paid
+        if self.booking.payment_status == 'paid' and self.booking.status == 'pending':
+            self.booking.confirm()
+    
+    def mark_failed(self, result_code, result_desc):
+        """Mark transaction as failed"""
+        self.status = 'failed'
+        self.result_code = result_code
+        self.result_description = result_desc
+        self.save()

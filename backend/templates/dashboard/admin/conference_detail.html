@@ -1,0 +1,170 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Conference Details - {{ booking.booking_reference }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Booking Information</h6>
+                <span class="badge badge-{{ booking.status }} fs-6">{{ booking.get_status_display }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1">Booking Reference</h6>
+                        <p class="fs-5 fw-bold">{{ booking.booking_reference }}</p>
+                        
+                        <h6 class="text-muted mb-1">Organization</h6>
+                        <p>{{ booking.organization_name }}</p>
+                        
+                        <h6 class="text-muted mb-1">Event Title</h6>
+                        <p>{{ booking.event_title }}</p>
+                        
+                        <h6 class="text-muted mb-1">Event Type</h6>
+                        <p>{{ booking.get_event_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1">Event Date</h6>
+                        <p>{{ booking.event_date|date:"F d, Y" }}</p>
+                        
+                        <h6 class="text-muted mb-1">Time</h6>
+                        <p>{{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}</p>
+                        
+                        <h6 class="text-muted mb-1">Expected Attendees</h6>
+                        <p>{{ booking.attendees }} persons</p>
+                        
+                        <h6 class="text-muted mb-1">Conference Room</h6>
+                        <p>{{ booking.get_room_display }}</p>
+                    </div>
+                </div>
+                
+                {% if booking.requirements %}
+                <hr>
+                <h6 class="text-muted mb-1">Special Requirements</h6>
+                <p>{{ booking.requirements }}</p>
+                {% endif %}
+                
+                <hr>
+                <h6 class="text-muted mb-2">Equipment Requested</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if booking.projector %}<span class="badge bg-secondary">Projector</span>{% endif %}
+                    {% if booking.whiteboard %}<span class="badge bg-secondary">Whiteboard</span>{% endif %}
+                    {% if booking.video_conferencing %}<span class="badge bg-secondary">Video Conferencing</span>{% endif %}
+                    {% if booking.sound_system %}<span class="badge bg-secondary">Sound System</span>{% endif %}
+                    {% if booking.catering_service %}<span class="badge bg-warning text-dark">Catering Service</span>{% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-user me-2"></i>Contact Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-1">Contact Person</h6>
+                        <p>{{ booking.contact_person }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-1">Email</h6>
+                        <p><a href="mailto:{{ booking.email }}">{{ booking.email }}</a></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-1">Phone</h6>
+                        <p><a href="tel:{{ booking.phone }}">{{ booking.phone }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if booking.status == 'pending' %}
+                    <a href="{% url 'dashboard:conference_action' booking.pk 'confirm' %}" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i> Confirm Booking
+                    </a>
+                    <a href="{% url 'dashboard:conference_action' booking.pk 'cancel' %}" class="btn btn-outline-danger">
+                        <i class="fas fa-times me-1"></i> Cancel Booking
+                    </a>
+                    {% elif booking.status == 'confirmed' %}
+                    <a href="{% url 'dashboard:conference_action' booking.pk 'complete' %}" class="btn btn-primary">
+                        <i class="fas fa-flag-checkered me-1"></i> Mark as Completed
+                    </a>
+                    <a href="{% url 'dashboard:conference_action' booking.pk 'cancel' %}" class="btn btn-outline-danger">
+                        <i class="fas fa-times me-1"></i> Cancel Booking
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'dashboard:conferences' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Summary -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment</h6>
+                <span class="badge {% if booking.payment_status == 'paid' %}bg-success{% elif booking.payment_status == 'partial' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                    {{ booking.get_payment_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total Amount</span>
+                    <strong>KES {{ booking.total_amount|floatformat:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Amount Paid</span>
+                    <strong class="text-success">KES {{ booking.amount_paid|floatformat:0 }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span>Balance</span>
+                    <strong class="text-danger">KES {{ booking.balance|floatformat:0 }}</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment History -->
+        {% if payments %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Payment History</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for payment in payments %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>KES {{ payment.amount|floatformat:0 }}</strong>
+                                <br><small class="text-muted">{{ payment.reference }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success">M-Pesa</span>
+                                <br><small class="text-muted">{{ payment.created_at|date:"M d, H:i" }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

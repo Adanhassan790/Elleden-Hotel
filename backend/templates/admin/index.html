@@ -1,0 +1,108 @@
+{% extends "admin/index.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Dashboard Quick Access Panel -->
+<div class="dashboard-panel" style="margin-bottom: 30px; background: linear-gradient(135deg, #8B7355 0%, #5a4a3a 100%); border-radius: 12px; padding: 25px; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <h3 style="margin: 0 0 8px 0; font-weight: 700; font-size: 1.4rem;">
+                <i class="fas fa-tachometer-alt"></i> Analytics Dashboard
+            </h3>
+            <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">
+                View comprehensive analytics, manage bookings across all services, and monitor real-time activity.
+            </p>
+        </div>
+        <a href="/dashboard/admin/" style="background: linear-gradient(135deg, #D4AF37 0%, #c9a227 100%); color: #333; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);">
+            <i class="fas fa-chart-line"></i> Open Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stats Row -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); border-radius: 12px; padding: 20px; color: white; box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; opacity: 0.9; font-size: 0.85rem;">Room Bookings</p>
+                <h3 style="margin: 5px 0 0 0; font-size: 1.8rem;">
+                    <a href="/admin/bookings/booking/" style="color: white; text-decoration: none;">View All</a>
+                </h3>
+            </div>
+            <i class="fas fa-bed" style="font-size: 2.5rem; opacity: 0.3;"></i>
+        </div>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); border-radius: 12px; padding: 20px; color: white; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; opacity: 0.9; font-size: 0.85rem;">Conferences</p>
+                <h3 style="margin: 5px 0 0 0; font-size: 1.8rem;">
+                    <a href="/admin/pages/conferencebooking/" style="color: white; text-decoration: none;">View All</a>
+                </h3>
+            </div>
+            <i class="fas fa-users" style="font-size: 2.5rem; opacity: 0.3;"></i>
+        </div>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #fd7e14 0%, #dc6a0a 100%); border-radius: 12px; padding: 20px; color: white; box-shadow: 0 4px 15px rgba(253, 126, 20, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; opacity: 0.9; font-size: 0.85rem;">Catering Orders</p>
+                <h3 style="margin: 5px 0 0 0; font-size: 1.8rem;">
+                    <a href="/admin/pages/cateringorder/" style="color: white; text-decoration: none;">View All</a>
+                </h3>
+            </div>
+            <i class="fas fa-utensils" style="font-size: 2.5rem; opacity: 0.3;"></i>
+        </div>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 12px; padding: 20px; color: white; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; opacity: 0.9; font-size: 0.85rem;">Restaurant</p>
+                <h3 style="margin: 5px 0 0 0; font-size: 1.8rem;">
+                    <a href="/admin/pages/restaurantreservation/" style="color: white; text-decoration: none;">View All</a>
+                </h3>
+            </div>
+            <i class="fas fa-concierge-bell" style="font-size: 2.5rem; opacity: 0.3;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links Box -->
+<div style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 15px rgba(0,0,0,0.06);">
+    <h4 style="margin: 0 0 20px 0; color: #333; font-weight: 600;">
+        <i class="fas fa-link" style="color: #8B7355;"></i> Quick Management Links
+    </h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+        <a href="/dashboard/admin/bookings/" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+            <i class="fas fa-calendar-check" style="color: #17a2b8;"></i>
+            Room Bookings
+        </a>
+        <a href="/dashboard/admin/conferences/" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+            <i class="fas fa-users" style="color: #dc3545;"></i>
+            Conferences
+        </a>
+        <a href="/dashboard/admin/catering/" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+            <i class="fas fa-utensils" style="color: #fd7e14;"></i>
+            Catering
+        </a>
+        <a href="/dashboard/admin/restaurant/" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+            <i class="fas fa-concierge-bell" style="color: #28a745;"></i>
+            Restaurant
+        </a>
+        <a href="/dashboard/admin/payments/" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+            <i class="fas fa-credit-card" style="color: #6f42c1;"></i>
+            Payments
+        </a>
+        <a href="/dashboard/admin/rooms/" style="display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: #f8f9fa; border-radius: 8px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+            <i class="fas fa-bed" style="color: #8B7355;"></i>
+            Manage Rooms
+        </a>
+    </div>
+</div>
+
+<!-- Default Admin Content -->
+{{ block.super }}
+{% endblock %}

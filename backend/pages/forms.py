@@ -1,5 +1,5 @@
 from django import forms
-from .models import ContactMessage, RestaurantReservation, ConferenceBooking, CateringInquiry
+from .models import ContactMessage, RestaurantReservation, ConferenceBooking, CateringInquiry, CateringOrder, CateringPackage
 
 
 class ContactForm(forms.ModelForm):
@@ -243,6 +243,71 @@ class CateringInquiryForm(forms.ModelForm):
             'additional_services': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Decorations, tent, chairs, serving equipment, etc.',
+                'rows': 3
+            }),
+        }
+
+
+class CateringOrderForm(forms.ModelForm):
+    """Catering order form with package selection"""
+    
+    package = forms.ModelChoiceField(
+        queryset=CateringPackage.objects.filter(is_active=True),
+        empty_label="Select a Catering Package",
+        widget=forms.Select(attrs={'class': 'form-control', 'required': True})
+    )
+    
+    class Meta:
+        model = CateringOrder
+        fields = [
+            'name', 'email', 'phone', 'event_type', 'event_date', 'event_time',
+            'venue_address', 'guest_count', 'package', 'special_requests'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Your Full Name',
+                'required': True
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Email Address',
+                'required': True
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Phone Number (for M-Pesa)',
+                'required': True
+            }),
+            'event_type': forms.Select(attrs={
+                'class': 'form-control',
+                'required': True
+            }),
+            'event_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date',
+                'required': True
+            }),
+            'event_time': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time',
+                'required': True
+            }),
+            'venue_address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Event venue address/location',
+                'rows': 2,
+                'required': True
+            }),
+            'guest_count': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Number of Guests',
+                'min': 20,
+                'required': True
+            }),
+            'special_requests': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Any special requests or dietary requirements...',
                 'rows': 3
             }),
         }

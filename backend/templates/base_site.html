@@ -33,11 +33,14 @@
                             <i class="fas fa-user"></i> {{ user.first_name|default:"Account" }}
                         </a>
                         <ul class="dropdown-menu-custom" id="userDropdownMenu">
-                            <li><a href="{% url 'bookings:my_bookings' %}"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
-                            <li><a href="{% url 'accounts:profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
                             {% if user.is_hotel_staff %}
                             <li><a href="{% url 'dashboard:admin_index' %}"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</a></li>
+                            <li><a href="{% url 'admin:index' %}"><i class="fas fa-cog"></i> Site Admin</a></li>
+                            {% else %}
+                            <li><a href="{% url 'dashboard:customer_index' %}"><i class="fas fa-tachometer-alt"></i> My Dashboard</a></li>
                             {% endif %}
+                            <li><a href="{% url 'bookings:my_bookings' %}"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+                            <li><a href="{% url 'accounts:profile' %}"><i class="fas fa-user-circle"></i> Profile</a></li>
                             <li class="divider"></li>
                             <li>
                                 <form action="{% url 'accounts:logout' %}" method="post" style="margin: 0;">

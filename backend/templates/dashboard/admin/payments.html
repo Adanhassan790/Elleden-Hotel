@@ -1,0 +1,229 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Payments Overview{% endblock %}
+
+{% block dashboard_content %}
+<!-- Payment Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <h6 class="text-muted mb-2">Room Payments</h6>
+                <h4 class="mb-0">
+                    {% with total=room_payments|length %}
+                    {{ total }} transactions
+                    {% endwith %}
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-start border-success border-4 h-100">
+            <div class="card-body">
+                <h6 class="text-muted mb-2">Service Payments</h6>
+                <h4 class="mb-0">
+                    {% with total=service_payments|length %}
+                    {{ total }} transactions
+                    {% endwith %}
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-start border-warning border-4 h-100">
+            <div class="card-body">
+                <h6 class="text-muted mb-2">M-Pesa Transactions</h6>
+                <h4 class="mb-0">
+                    {% with room_total=room_mpesa|length service_total=service_mpesa|length %}
+                    {{ room_total|add:service_total }} transactions
+                    {% endwith %}
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Tabs -->
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#room-payments">
+                    <i class="fas fa-bed me-1"></i> Room Payments
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#service-payments">
+                    <i class="fas fa-concierge-bell me-1"></i> Service Payments
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#room-mpesa">
+                    <i class="fas fa-mobile-alt me-1"></i> Room M-Pesa
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#service-mpesa">
+                    <i class="fas fa-mobile-alt me-1"></i> Service M-Pesa
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Room Payments -->
+            <div class="tab-pane fade show active" id="room-payments">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Booking Reference</th>
+                                <th>Guest</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in room_payments %}
+                            <tr>
+                                <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'dashboard:booking_detail' payment.booking.pk %}">
+                                        {{ payment.booking.booking_reference }}
+                                    </a>
+                                </td>
+                                <td>{{ payment.booking.guest_name }}</td>
+                                <td><strong>KES {{ payment.amount|floatformat:0 }}</strong></td>
+                                <td><span class="badge bg-success">{{ payment.get_payment_method_display }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No room payments found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Service Payments -->
+            <div class="tab-pane fade" id="service-payments">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>Service Type</th>
+                                <th>Amount</th>
+                                <th>Phone</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in service_payments %}
+                            <tr>
+                                <td>{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ payment.reference }}</td>
+                                <td>
+                                    <span class="badge {% if payment.service_type == 'conference' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ payment.service_type|title }}
+                                    </span>
+                                </td>
+                                <td><strong>KES {{ payment.amount|floatformat:0 }}</strong></td>
+                                <td>{{ payment.phone_number }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No service payments found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Room M-Pesa Transactions -->
+            <div class="tab-pane fade" id="room-mpesa">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>M-Pesa Code</th>
+                                <th>Phone</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for txn in room_mpesa %}
+                            <tr>
+                                <td>{{ txn.created_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ txn.booking.booking_reference }}</td>
+                                <td>{{ txn.mpesa_receipt_number|default:"-" }}</td>
+                                <td>{{ txn.phone_number }}</td>
+                                <td><strong>KES {{ txn.amount|floatformat:0 }}</strong></td>
+                                <td>
+                                    <span class="badge {% if txn.status == 'completed' %}bg-success{% elif txn.status == 'pending' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ txn.status|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No M-Pesa transactions found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Service M-Pesa Transactions -->
+            <div class="tab-pane fade" id="service-mpesa">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Service</th>
+                                <th>M-Pesa Code</th>
+                                <th>Phone</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for txn in service_mpesa %}
+                            <tr>
+                                <td>{{ txn.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge {% if txn.service_type == 'conference' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ txn.service_type|title }}
+                                    </span>
+                                    {{ txn.booking_reference }}
+                                </td>
+                                <td>{{ txn.mpesa_receipt_number|default:"-" }}</td>
+                                <td>{{ txn.phone_number }}</td>
+                                <td><strong>KES {{ txn.amount|floatformat:0 }}</strong></td>
+                                <td>
+                                    <span class="badge {% if txn.status == 'completed' %}bg-success{% elif txn.status == 'pending' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ txn.status|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No service M-Pesa transactions found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

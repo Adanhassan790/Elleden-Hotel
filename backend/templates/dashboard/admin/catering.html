@@ -1,0 +1,126 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Catering Management{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Payment Status</label>
+                <select name="payment" class="form-select">
+                    <option value="">All</option>
+                    {% for value, label in payment_choices %}
+                    <option value="{{ value }}" {% if current_payment == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Reference, name, venue..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-warning w-100">
+                    <i class="fas fa-search me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="fas fa-utensils me-2"></i>Catering Orders</h6>
+        <span class="badge bg-warning text-dark">{{ orders|length }} results</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reference</th>
+                        <th>Customer</th>
+                        <th>Package</th>
+                        <th>Event Date</th>
+                        <th>Guests</th>
+                        <th>Amount</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td><strong>{{ order.booking_reference }}</strong></td>
+                        <td>
+                            {{ order.name }}
+                            <br><small class="text-muted">{{ order.phone }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning text-dark">{{ order.package.name }}</span>
+                        </td>
+                        <td>
+                            {{ order.event_date|date:"M d, Y" }}
+                            <br><small class="text-muted">{{ order.event_time|time:"g:i A" }}</small>
+                        </td>
+                        <td>{{ order.guest_count }}</td>
+                        <td>KES {{ order.total_amount|floatformat:0 }}</td>
+                        <td>
+                            <span class="badge {% if order.payment_status == 'paid' %}bg-success{% elif order.payment_status == 'partial' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ order.status }}">{{ order.get_status_display }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'dashboard:catering_detail' order.pk %}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">No catering orders found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Package Summary -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-box me-2"></i>Available Packages</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for package in packages %}
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3">
+                    <h6 class="fw-bold">{{ package.name }}</h6>
+                    <p class="text-muted small mb-2">{{ package.description|truncatewords:15 }}</p>
+                    <p class="mb-0"><strong>KES {{ package.price_per_person }}</strong> per person</p>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">No packages configured. Add packages in Django Admin.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

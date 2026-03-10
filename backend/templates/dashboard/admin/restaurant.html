@@ -1,0 +1,123 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Restaurant Reservations{% endblock %}
+
+{% block dashboard_content %}
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" value="{{ current_date }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Reference, name, phone..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-info w-100">
+                    <i class="fas fa-search me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reservations Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Restaurant Reservations</h6>
+        <span class="badge bg-info">{{ reservations|length }} results</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Reference</th>
+                        <th>Guest Name</th>
+                        <th>Contact</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Guests</th>
+                        <th>Seating</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr>
+                        <td><strong>{{ reservation.booking_reference }}</strong></td>
+                        <td>{{ reservation.name }}</td>
+                        <td>
+                            {{ reservation.email }}
+                            <br><small class="text-muted">{{ reservation.phone }}</small>
+                        </td>
+                        <td>{{ reservation.date|date:"M d, Y" }}</td>
+                        <td>{{ reservation.time|time:"g:i A" }}</td>
+                        <td>{{ reservation.guests }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ reservation.get_seating_preference_display }}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if reservation.status == 'pending' %}
+                                <a href="{% url 'dashboard:restaurant_action' reservation.pk 'confirm' %}" 
+                                   class="btn btn-success" title="Confirm">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                <a href="{% url 'dashboard:restaurant_action' reservation.pk 'cancel' %}" 
+                                   class="btn btn-danger" title="Cancel">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                                {% elif reservation.status == 'confirmed' %}
+                                <a href="{% url 'dashboard:restaurant_action' reservation.pk 'complete' %}" 
+                                   class="btn btn-primary" title="Mark as Complete">
+                                    <i class="fas fa-flag-checkered"></i>
+                                </a>
+                                <a href="{% url 'dashboard:restaurant_action' reservation.pk 'cancel' %}" 
+                                   class="btn btn-danger" title="Cancel">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">No reservations found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="card mt-4">
+    <div class="card-body py-2">
+        <small class="text-muted">
+            <strong>Status Legend:</strong>
+            <span class="badge badge-pending ms-2">Pending</span>
+            <span class="badge badge-confirmed ms-2">Confirmed</span>
+            <span class="badge badge-completed ms-2">Completed</span>
+            <span class="badge badge-cancelled ms-2">Cancelled</span>
+        </small>
+    </div>
+</div>
+{% endblock %}

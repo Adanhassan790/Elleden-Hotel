@@ -38,7 +38,7 @@ class BookingForm(forms.ModelForm):
 class GuestBookingForm(forms.ModelForm):
     """Simplified form for guest bookings from the website"""
     room_type = forms.ModelChoiceField(
-        queryset=RoomType.objects.filter(is_active=True),
+        queryset=RoomType.objects.none(),
         empty_label="Select Room Type"
     )
     
@@ -55,6 +55,9 @@ class GuestBookingForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Dynamically load room types to ensure fresh data
+        self.fields['room_type'].queryset = RoomType.objects.filter(is_active=True)
+        
         for field in self.fields:
             self.fields[field].widget.attrs.update({'class': 'form-control'})
         

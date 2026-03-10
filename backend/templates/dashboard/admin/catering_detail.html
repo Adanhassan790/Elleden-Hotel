@@ -1,0 +1,174 @@
+{% extends 'dashboard/admin/base_admin.html' %}
+
+{% block page_title %}Catering Order - {{ order.booking_reference }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Order Information</h6>
+                <span class="badge badge-{{ order.status }} fs-6">{{ order.get_status_display }}</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1">Booking Reference</h6>
+                        <p class="fs-5 fw-bold">{{ order.booking_reference }}</p>
+                        
+                        <h6 class="text-muted mb-1">Package</h6>
+                        <p>
+                            <span class="badge bg-warning text-dark">{{ order.package.name }}</span>
+                            <br><small class="text-muted">KES {{ order.package.price_per_person }} per person</small>
+                        </p>
+                        
+                        <h6 class="text-muted mb-1">Event Type</h6>
+                        <p>{{ order.get_event_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-1">Event Date</h6>
+                        <p>{{ order.event_date|date:"F d, Y" }}</p>
+                        
+                        <h6 class="text-muted mb-1">Event Time</h6>
+                        <p>{{ order.event_time|time:"g:i A" }}</p>
+                        
+                        <h6 class="text-muted mb-1">Number of Guests</h6>
+                        <p>{{ order.guest_count }} persons</p>
+                    </div>
+                </div>
+                
+                <hr>
+                <h6 class="text-muted mb-1">Venue Address</h6>
+                <p>{{ order.venue_address }}</p>
+                
+                {% if order.special_requests %}
+                <hr>
+                <h6 class="text-muted mb-1">Special Requests</h6>
+                <p>{{ order.special_requests }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Customer Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-user me-2"></i>Customer Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-1">Name</h6>
+                        <p>{{ order.name }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-1">Email</h6>
+                        <p><a href="mailto:{{ order.email }}">{{ order.email }}</a></p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-1">Phone</h6>
+                        <p><a href="tel:{{ order.phone }}">{{ order.phone }}</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if order.status == 'pending' %}
+                    <a href="{% url 'dashboard:catering_action' order.pk 'confirm' %}" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i> Confirm Order
+                    </a>
+                    <a href="{% url 'dashboard:catering_action' order.pk 'cancel' %}" class="btn btn-outline-danger">
+                        <i class="fas fa-times me-1"></i> Cancel Order
+                    </a>
+                    {% elif order.status == 'confirmed' %}
+                    <a href="{% url 'dashboard:catering_action' order.pk 'preparing' %}" class="btn btn-info">
+                        <i class="fas fa-fire me-1"></i> Start Preparing
+                    </a>
+                    <a href="{% url 'dashboard:catering_action' order.pk 'cancel' %}" class="btn btn-outline-danger">
+                        <i class="fas fa-times me-1"></i> Cancel Order
+                    </a>
+                    {% elif order.status == 'preparing' %}
+                    <a href="{% url 'dashboard:catering_action' order.pk 'deliver' %}" class="btn btn-primary">
+                        <i class="fas fa-truck me-1"></i> Mark as Delivered
+                    </a>
+                    {% elif order.status == 'delivered' %}
+                    <a href="{% url 'dashboard:catering_action' order.pk 'complete' %}" class="btn btn-success">
+                        <i class="fas fa-flag-checkered me-1"></i> Mark as Completed
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'dashboard:catering' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Summary -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment</h6>
+                <span class="badge {% if order.payment_status == 'paid' %}bg-success{% elif order.payment_status == 'partial' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                    {{ order.get_payment_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Package Price</span>
+                    <span>KES {{ order.package.price_per_person }} x {{ order.guest_count }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total Amount</span>
+                    <strong>KES {{ order.total_amount|floatformat:0 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Amount Paid</span>
+                    <strong class="text-success">KES {{ order.amount_paid|floatformat:0 }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span>Balance</span>
+                    <strong class="text-danger">KES {{ order.balance|floatformat:0 }}</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment History -->
+        {% if payments %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Payment History</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for payment in payments %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>KES {{ payment.amount|floatformat:0 }}</strong>
+                                <br><small class="text-muted">{{ payment.reference }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success">M-Pesa</span>
+                                <br><small class="text-muted">{{ payment.created_at|date:"M d, H:i" }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmed - Elleden Hotel{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/static/images/conference%20room.jpg') center/cover;">
+    <div class="container">
+        <h1>Booking Confirmed</h1>
+        <p>Thank you for your conference booking</p>
+    </div>
+</section>
+
+<section class="confirmation-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-lg">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                            <h2 class="mt-3">Conference Booking Confirmed!</h2>
+                            <p class="text-muted">Reference: <strong>{{ booking.booking_reference }}</strong></p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="booking-details bg-light p-4 rounded mb-4">
+                                    <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Booking Details</h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Organization:</strong></p>
+                                            <p class="text-muted">{{ booking.organization_name }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Contact Person:</strong></p>
+                                            <p class="text-muted">{{ booking.contact_name }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Email:</strong></p>
+                                            <p class="text-muted">{{ booking.email }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Phone:</strong></p>
+                                            <p class="text-muted">{{ booking.phone }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Event Type:</strong></p>
+                                            <p class="text-muted">{{ booking.get_event_type_display }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Attendees:</strong></p>
+                                            <p class="text-muted">{{ booking.attendees }} people</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Event Date:</strong></p>
+                                            <p class="text-muted">{{ booking.event_date|date:"l, F j, Y" }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Time:</strong></p>
+                                            <p class="text-muted">{{ booking.start_time }} - {{ booking.end_time }}</p>
+                                        </div>
+                                        {% if booking.requirements %}
+                                        <div class="col-12">
+                                            <p class="mb-1"><strong>Requirements:</strong></p>
+                                            <p class="text-muted">{{ booking.requirements }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-5">
+                                <div class="payment-card bg-primary text-white p-4 rounded mb-4">
+                                    <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i>Payment Summary</h5>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Total Amount:</span>
+                                        <strong>KES {{ booking.total_amount|floatformat:0 }}</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Amount Paid:</span>
+                                        <strong>KES {{ booking.amount_paid|floatformat:0 }}</strong>
+                                    </div>
+                                    <hr class="bg-white">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span>Balance Due:</span>
+                                        <strong class="fs-4">KES {{ booking.balance_due|floatformat:0 }}</strong>
+                                    </div>
+                                    
+                                    <div class="payment-status mb-3">
+                                        {% if booking.payment_status == 'paid' %}
+                                            <span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i>Fully Paid</span>
+                                        {% elif booking.payment_status == 'partial' %}
+                                            <span class="badge bg-warning text-dark fs-6"><i class="fas fa-clock me-1"></i>Partially Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger fs-6"><i class="fas fa-exclamation me-1"></i>Payment Pending</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if booking.balance_due > 0 %}
+                                    <a href="{% url 'pages:initiate_service_payment' service_type='conference' pk=booking.pk %}" 
+                                       class="btn btn-light btn-lg w-100">
+                                        <i class="fas fa-mobile-alt me-2"></i>Pay with M-Pesa
+                                    </a>
+                                    <p class="small mt-2 mb-0 text-center opacity-75">Secure payment via Safaricom M-Pesa</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    A confirmation email has been sent to {{ booking.email }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="{% url 'pages:conference' %}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Conference
+                            </a>
+                            <a href="/" class="btn btn-primary me-2">
+                                <i class="fas fa-home me-2"></i>Back to Home
+                            </a>
+                            {% if request.user.is_authenticated %}
+                            <a href="{% url 'dashboard:customer_index' %}" class="btn btn-success">
+                                <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                            </a>
+                            {% else %}
+                            <a href="{% url 'accounts:signup' %}" class="btn btn-info">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

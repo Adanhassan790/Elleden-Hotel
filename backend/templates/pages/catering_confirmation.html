@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmed - Elleden Hotel{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/static/images/catering.jpeg') center/cover;">
+    <div class="container">
+        <h1>Order Confirmed</h1>
+        <p>Thank you for your catering order</p>
+    </div>
+</section>
+
+<section class="confirmation-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-lg">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                            <h2 class="mt-3">Catering Order Confirmed!</h2>
+                            <p class="text-muted">Reference: <strong>{{ order.booking_reference }}</strong></p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-7">
+                                <div class="order-details bg-light p-4 rounded mb-4">
+                                    <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Order Details</h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Name:</strong></p>
+                                            <p class="text-muted">{{ order.name }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Email:</strong></p>
+                                            <p class="text-muted">{{ order.email }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Phone:</strong></p>
+                                            <p class="text-muted">{{ order.phone }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Package:</strong></p>
+                                            <p class="text-muted">{{ order.package.name }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Event Type:</strong></p>
+                                            <p class="text-muted">{{ order.get_event_type_display }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Guest Count:</strong></p>
+                                            <p class="text-muted">{{ order.guest_count }} people</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Event Date:</strong></p>
+                                            <p class="text-muted">{{ order.event_date|date:"l, F j, Y" }}</p>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <p class="mb-1"><strong>Venue/Delivery:</strong></p>
+                                            <p class="text-muted">{{ order.venue_address|default:"At Hotel" }}</p>
+                                        </div>
+                                        {% if order.special_requests %}
+                                        <div class="col-12">
+                                            <p class="mb-1"><strong>Special Requests:</strong></p>
+                                            <p class="text-muted">{{ order.special_requests }}</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if order.package %}
+                                <div class="package-details bg-white border p-4 rounded mb-4">
+                                    <h5 class="mb-3"><i class="fas fa-utensils me-2"></i>Package Details</h5>
+                                    <h6>{{ order.package.name }}</h6>
+                                    <p class="text-muted mb-2">{{ order.package.description }}</p>
+                                    <p class="mb-1"><strong>Price per person:</strong> KES {{ order.package.price_per_person|floatformat:0 }}</p>
+                                    {% if order.package.menu_items %}
+                                    <p class="mb-1"><strong>Menu Items:</strong></p>
+                                    <p class="text-muted small">{{ order.package.menu_items }}</p>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-5">
+                                <div class="payment-card bg-success text-white p-4 rounded mb-4">
+                                    <h5 class="mb-3"><i class="fas fa-credit-card me-2"></i>Payment Summary</h5>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Package Price:</span>
+                                        <strong>KES {{ order.package.price_per_person|floatformat:0 }} x {{ order.guest_count }}</strong>
+                                    </div>
+                                    <hr class="bg-white">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Total Amount:</span>
+                                        <strong>KES {{ order.total_amount|floatformat:0 }}</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Amount Paid:</span>
+                                        <strong>KES {{ order.amount_paid|floatformat:0 }}</strong>
+                                    </div>
+                                    <hr class="bg-white">
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span>Balance Due:</span>
+                                        <strong class="fs-4">KES {{ order.balance_due|floatformat:0 }}</strong>
+                                    </div>
+                                    
+                                    <div class="payment-status mb-3">
+                                        {% if order.payment_status == 'paid' %}
+                                            <span class="badge bg-light text-success fs-6"><i class="fas fa-check me-1"></i>Fully Paid</span>
+                                        {% elif order.payment_status == 'partial' %}
+                                            <span class="badge bg-warning text-dark fs-6"><i class="fas fa-clock me-1"></i>Partially Paid</span>
+                                        {% else %}
+                                            <span class="badge bg-danger fs-6"><i class="fas fa-exclamation me-1"></i>Payment Pending</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if order.balance_due > 0 %}
+                                    <a href="{% url 'pages:initiate_service_payment' service_type='catering' pk=order.pk %}" 
+                                       class="btn btn-light btn-lg w-100">
+                                        <i class="fas fa-mobile-alt me-2"></i>Pay with M-Pesa
+                                    </a>
+                                    <p class="small mt-2 mb-0 text-center opacity-75">Secure payment via Safaricom M-Pesa</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-envelope me-2"></i>
+                                    A confirmation email has been sent to {{ order.email }}
+                                </div>
+                                
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Note:</strong> Our team will contact you within 24 hours to confirm your order details.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <a href="{% url 'pages:catering' %}" class="btn btn-outline-success me-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Catering
+                            </a>
+                            <a href="/" class="btn btn-success me-2">
+                                <i class="fas fa-home me-2"></i>Back to Home
+                            </a>
+                            {% if request.user.is_authenticated %}
+                            <a href="{% url 'dashboard:customer_index' %}" class="btn btn-primary">
+                                <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                            </a>
+                            {% else %}
+                            <a href="{% url 'accounts:signup' %}" class="btn btn-info">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

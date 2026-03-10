@@ -254,7 +254,7 @@ img {
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #1a1a1a 0%, #3d3d3d 100%);
-    background-image: url('../images/hero-bg.jpg');
+    background-image: url('../images/hotel%20outer%20view.jpeg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -613,7 +613,7 @@ img {
 /* ===== CTA SECTION ===== */
 .cta {
     position: relative;
-    background-image: url('../images/cta-bg.jpg');
+    background-image: url('../images/hall.jpeg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
