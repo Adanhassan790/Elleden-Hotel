@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Elleden Hotel{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notifications.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     {% block extra_css %}{% endblock %}
@@ -28,6 +29,10 @@
                     <li class="nav-item"><a href="{% url 'pages:catering' %}" class="nav-link {% block nav_catering %}{% endblock %}">Catering</a></li>
                     <li class="nav-item"><a href="{% url 'pages:contact' %}" class="nav-link {% block nav_contact %}{% endblock %}">Contact</a></li>
                     {% if user.is_authenticated %}
+                    <!-- Notifications Bell -->
+                    <li class="nav-item" style="display: inline-block; margin: 0 10px;">
+                        {% include 'notifications/bell.html' %}
+                    </li>
                     <li class="nav-item dropdown">
                         <a href="#" class="nav-link nav-login dropdown-toggle" id="userDropdown">
                             <i class="fas fa-user"></i> {{ user.first_name|default:"Account" }}

@@ -11,13 +11,15 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-elleden-hotel-change-this-in-production-2024')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError('SECRET_KEY environment variable is not set. Set it before running the app.')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 # Allowed hosts - add your production domain
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') + ['.railway.app', '.up.railway.app']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',') + ['.railway.app', '.up.railway.app']
 
 # =============================================================================
 # PRODUCTION SECURITY SETTINGS
@@ -310,16 +312,16 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
-# Email Settings (configure for production)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email Settings (using console backend for testing)
+# To print emails to server console instead of sending them
 DEFAULT_FROM_EMAIL = 'Elleden Hotel <elledenhotelltd@gmail.com>'
-# For production, use:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# For Gmail SMTP (requires 2-Step Verification):
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # =============================================================================
 # M-PESA DARAJA API SETTINGS

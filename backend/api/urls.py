@@ -1,10 +1,18 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
 
 app_name = 'api'
 
+# Create a router for viewsets
+router = DefaultRouter()
+router.register(r'notifications', views.NotificationViewSet, basename='notification')
+
 urlpatterns = [
+    # Include router URLs
+    path('', include(router.urls)),
+    
     # Authentication
     path('auth/register/', views.RegisterView.as_view(), name='register'),
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain'),

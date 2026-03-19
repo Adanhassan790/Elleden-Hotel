@@ -176,6 +176,18 @@ class SMSTemplates:
         )
     
     @staticmethod
+    def booking_cancellation(booking):
+        """Booking cancellation SMS"""
+        return (
+            f"Elleden Hotel: Booking Cancelled\n"
+            f"Ref: {booking.booking_reference}\n"
+            f"Room: {booking.room_type.name}\n"
+            f"Check-in was: {booking.check_in_date.strftime('%b %d, %Y')}\n"
+            f"Your cancellation has been processed.\n"
+            f"For assistance: +254759435880"
+        )
+    
+    @staticmethod
     def booking_reminder(booking, hours_before=24):
         """Booking reminder SMS"""
         return (

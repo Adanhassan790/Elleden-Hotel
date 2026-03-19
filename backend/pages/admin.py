@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (ContactMessage, RestaurantReservation, ConferenceBooking, 
                      CateringInquiry, CateringPackage, CateringOrder, 
-                     ServicePayment, ServiceMpesaTransaction)
+                     ServicePayment, ServiceMpesaTransaction, Notification)
 
 
 @admin.register(ContactMessage)
@@ -190,3 +190,31 @@ class ServiceMpesaTransactionAdmin(admin.ModelAdmin):
     search_fields = ['checkout_request_id', 'mpesa_receipt_number', 'phone_number']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['-created_at']
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'title', 'notification_type', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'created_at']
+    search_fields = ['user__email', 'title', 'message']
+    readonly_fields = ['created_at', 'updated_at', 'read_at']
+    list_editable = ['is_read']
+    ordering = ['-created_at']
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Notification Content', {
+            'fields': ('user', 'title', 'message', 'notification_type', 'icon')
+        }),
+        ('Status', {
+            'fields': ('is_read', 'read_at')
+        }),
+        ('Links', {
+            'fields': ('link', 'booking', 'payment'),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )

@@ -4,6 +4,9 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from rooms.models import Room, RoomType
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Booking(models.Model):
@@ -139,6 +142,17 @@ class Booking(models.Model):
         if self.room.status == 'reserved':
             self.room.set_available()
         self.save()
+        
+        # Send cancellation SMS to guest
+        if self.guest_phone:
+            try:
+                from .sms import SMSService, SMSTemplates
+                sms_service = SMSService()
+                message = SMSTemplates.booking_cancellation(self)
+                sms_service.send_sms(self.guest_phone, message)
+                logger.info(f"Cancellation SMS sent for booking {self.booking_reference}")
+            except Exception as e:
+                logger.error(f"Failed to send cancellation SMS for {self.booking_reference}: {e}")
     
     def confirm(self):
         self.status = 'confirmed'
@@ -232,6 +246,21 @@ class MpesaTransaction(models.Model):
             transaction_reference=mpesa_receipt,
             notes=f'M-Pesa STK Push payment from {self.phone_number}'
         )
+        
+        # Send payment SMS to guest
+        if self.booking.guest_phone:
+            try:
+                from .sms import SMSService, SMSTemplates
+                sms_service = SMSService()
+                message = SMSTemplates.payment_confirmation(
+                    'Room Booking',
+                    self.booking.booking_reference,
+                    self.amount
+                )
+                sms_service.send_sms(self.booking.guest_phone, message)
+                logger.info(f"Payment SMS sent for booking {self.booking.booking_reference}")
+            except Exception as e:
+                logger.error(f"Failed to send payment SMS for {self.booking.booking_reference}: {e}")
         
         # Confirm booking if fully paid
         if self.booking.payment_status == 'paid' and self.booking.status == 'pending':

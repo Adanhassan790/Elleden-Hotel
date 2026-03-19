@@ -57,6 +57,16 @@
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-lg-6">
+            <!-- Payment Required Alert -->
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-bell me-2"></i>Payment Required</h5>
+                <p class="mb-0">
+                    Your booking (Ref: <strong>{{ booking.booking_reference }}</strong>) has been submitted successfully. 
+                    <strong>Please complete the payment below to confirm your reservation.</strong>
+                </p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
             <!-- Booking Summary -->
             <div class="card mb-4">
                 <div class="card-header">

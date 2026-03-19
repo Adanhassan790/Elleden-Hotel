@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 import uuid
 
 
@@ -497,3 +498,117 @@ class ServiceMpesaTransaction(models.Model):
         self.result_code = result_code
         self.result_description = result_desc
         self.save()
+
+
+class Notification(models.Model):
+    """User and Admin Notifications"""
+    NOTIFICATION_TYPES = [
+        ('booking', 'Booking Notification'),
+        ('payment', 'Payment Notification'),
+        ('booking_status', 'Booking Status Update'),
+        ('cancellation', 'Cancellation Notification'),
+        ('reminder', 'Reminder'),
+        ('system', 'System Notification'),
+        ('message', 'Message'),
+        ('admin_alert', 'Admin Alert'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES, default='system')
+    
+    # Reference to related objects
+    booking = models.ForeignKey('bookings.Booking', on_delete=models.SET_NULL, 
+                               null=True, blank=True, related_name='notifications')
+    payment = models.ForeignKey('bookings.Payment', on_delete=models.SET_NULL,
+                               null=True, blank=True, related_name='notifications')
+    
+    # Status
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    
+    # Icon/Link
+    icon = models.CharField(max_length=50, default='fa-bell', help_text="Font Awesome icon class")
+    link = models.CharField(max_length=500, blank=True, help_text="URL to relevant page")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+    
+    def __str__(self):
+        return f"{self.title} - {self.user.email}"
+    
+    def mark_as_read(self):
+        """Mark notification as read"""
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save()
+    
+    def mark_as_unread(self):
+        """Mark notification as unread"""
+        if self.is_read:
+            self.is_read = False
+            self.read_at = None
+            self.save()
+    
+    @staticmethod
+    def create_booking_notification(user, booking, title=None, message=None, notification_type='booking'):
+        """Create booking notification"""
+        title = title or f"Booking Confirmation - {booking.booking_reference}"
+        message = message or f"Your booking for {booking.room_type.name} has been confirmed."
+        
+        return Notification.objects.create(
+            user=user,
+            title=title,
+            message=message,
+            notification_type=notification_type,
+            booking=booking,
+            icon='fa-calendar-check',
+            link=f'/bookings/{booking.id}/'
+        )
+    
+    @staticmethod
+    def create_payment_notification(user, booking, title=None, message=None, payment=None):
+        """Create payment notification"""
+        title = title or f"Payment Received - {booking.booking_reference}"
+        message = message or f"Payment of KES {booking.total_amount:,.0f} has been confirmed."
+        
+        return Notification.objects.create(
+            user=user,
+            title=title,
+            message=message,
+            notification_type='payment',
+            booking=booking,
+            payment=payment,
+            icon='fa-credit-card',
+            link=f'/bookings/{booking.id}/'
+        )
+    
+    @staticmethod
+    def create_status_notification(user, booking, old_status, new_status):
+        """Create booking status change notification"""
+        status_messages = {
+            'confirmed': 'Your booking has been confirmed!',
+            'checked_in': 'You have checked in successfully. Welcome!',
+            'checked_out': 'Thank you for staying with us!',
+            'cancelled': 'Your booking has been cancelled.',
+        }
+        
+        title = f"Booking Status Update - {booking.booking_reference}"
+        message = status_messages.get(new_status, f"Booking status changed to {booking.get_status_display()}")
+        
+        return Notification.objects.create(
+            user=user,
+            title=title,
+            message=message,
+            notification_type='booking_status',
+            booking=booking,
+            icon='fa-info-circle',
+            link=f'/bookings/{booking.id}/'
+        )

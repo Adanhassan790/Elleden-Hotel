@@ -1,5 +1,5 @@
 from rest_framework import viewsets, generics, status, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils import timezone
@@ -9,11 +9,13 @@ from datetime import datetime, timedelta
 from accounts.models import User
 from rooms.models import RoomType, Room
 from bookings.models import Booking
+from pages.models import Notification
 
 from .serializers import (
     UserSerializer, UserRegistrationSerializer,
     RoomTypeSerializer, RoomSerializer,
-    BookingSerializer, BookingCreateSerializer
+    BookingSerializer, BookingCreateSerializer,
+    NotificationSerializer
 )
 
 
@@ -241,4 +243,65 @@ class RoomAvailabilityCalendarView(APIView):
             'start_date': start_date.strftime('%Y-%m-%d'),
             'end_date': end_date.strftime('%Y-%m-%d'),
             'calendar': calendar_data
+        })
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    """
+    API ViewSet for notifications
+    - List user's notifications
+    - Mark as read/unread
+    - Delete notifications
+    """
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
+    
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        """Get count of unread notifications"""
+        count = Notification.objects.filter(
+            user=request.user, 
+            is_read=False
+        ).count()
+        return Response({'unread_count': count})
+    
+    @action(detail=False, methods=['get'])
+    def unread(self, request):
+        """Get all unread notifications"""
+        queryset = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).order_by('-created_at')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        """Mark a notification as read"""
+        notification = self.get_object()
+        notification.mark_as_read()
+        return Response({'status': 'notification marked as read'})
+    
+    @action(detail=True, methods=['post'])
+    def mark_as_unread(self, request, pk=None):
+        """Mark a notification as unread"""
+        notification = self.get_object()
+        notification.mark_as_unread()
+        return Response({'status': 'notification marked as unread'})
+    
+    @action(detail=False, methods=['post'])
+    def mark_all_as_read(self, request):
+        """Mark all user notifications as read"""
+        notifications = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        )
+        count = notifications.count()
+        for notification in notifications:
+            notification.mark_as_read()
+        return Response({
+            'status': f'{count} notifications marked as read'
         })

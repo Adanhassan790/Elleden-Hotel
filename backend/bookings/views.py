@@ -59,8 +59,9 @@ class BookingCreateView(CreateView):
         # Send SMS and email confirmation
         send_booking_confirmation(booking)
         
-        messages.success(self.request, f'Booking submitted successfully! Your reference: {booking.booking_reference}')
-        return redirect('bookings:confirmation', pk=booking.pk)
+        messages.success(self.request, f'Booking submitted successfully! Your reference: {booking.booking_reference}. Please proceed to payment.')
+        # Redirect directly to payment instead of confirmation
+        return redirect('bookings:payment', pk=booking.pk)
 
 
 class BookingConfirmationView(DetailView):

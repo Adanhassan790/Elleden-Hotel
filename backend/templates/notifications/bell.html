@@ -1,0 +1,434 @@
+{% load static %}
+
+<!-- Notification Bell -->
+<div class="notification-bell-container">
+    <button class="notification-bell" id="notificationBellBtn" type="button" title="Notifications">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge" id="notificationBadge">0</span>
+    </button>
+    
+    <!-- Notification Dropdown -->
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">
+            <h5>Notifications</h5>
+            <button type="button" id="closeNotifications">×</button>
+        </div>
+        
+        <div class="notification-list" id="notificationList">
+            <div class="notification-empty">
+                <p>No notifications yet</p>
+            </div>
+        </div>
+        
+        <div class="notification-footer">
+            <button class="btn-link" id="markAllRead">Mark all as read</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Inline critical styles to prevent FOUC */
+    #notificationBellBtn:hover {
+        transform: scale(1.12);
+        color: #5D2E0C;
+    }
+    
+    .notification-dropdown.show {
+        display: flex !important;
+    }
+    
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .notification-item.unread {
+        background-color: #f0f4ff;
+        border-left: 3px solid #8B4513;
+        padding-left: 12px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bellBtn = document.getElementById('notificationBellBtn');
+    const dropdown = document.getElementById('notificationDropdown');
+    const closeBtn = document.getElementById('closeNotifications');
+    const notificationList = document.getElementById('notificationList');
+    const badge = document.getElementById('notificationBadge');
+    const markAllReadBtn = document.getElementById('markAllRead');
+    
+    // Toggle dropdown
+    bellBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+        if (dropdown.classList.contains('show')) {
+            loadNotifications();
+        }
+    });
+    
+    // Close dropdown
+    closeBtn.addEventListener('click', function() {
+        dropdown.classList.remove('show');
+    });
+    
+    // Mark all as read
+    markAllReadBtn.addEventListener('click', function() {
+        fetch('/api/notifications/mark_all_as_read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadNotifications();
+        })
+        .catch(error => console.error('Error marking all as read:', error));
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.notification-bell-container')) {
+            dropdown.classList.remove('show');
+        }
+    });
+    
+    // Load notifications
+    function loadNotifications() {
+        {% if user.is_authenticated %}
+        fetch('/api/notifications/', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const notifications = Array.isArray(data) ? data : (data.results || []);
+            renderNotifications(notifications);
+            updateBadge();
+        })
+        .catch(error => console.error('Error loading notifications:', error));
+        {% endif %}
+    }
+    
+    // Render notifications
+    function renderNotifications(notifications) {
+        if (!notifications || notifications.length === 0) {
+            notificationList.innerHTML = '<div class="notification-empty"><p>No notifications yet</p></div>';
+            return;
+        }
+        
+        notificationList.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                 data-id="${notification.id}"
+                 onclick="handleNotificationClick(event, ${notification.id}, '${notification.link || '#'}')">
+                <div class="notification-icon">
+                    <i class="fas ${notification.icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <h6 class="notification-title">${escapeHtml(notification.title)}</h6>
+                    <p class="notification-message">${escapeHtml(notification.message)}</p>
+                    <div class="notification-time">${formatTime(notification.created_at)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Update badge
+    function updateBadge() {
+        {% if user.is_authenticated %}
+        fetch('/api/notifications/unread_count/', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const count = data.unread_count;
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = count > 0 ? 'flex' : 'none';
+        })
+        .catch(error => console.error('Error updating badge:', error));
+        {% endif %}
+    }
+    
+    // Load notifications on page load
+    {% if user.is_authenticated %}
+    loadNotifications();
+    
+    // Refresh badge count every 30 seconds
+    setInterval(updateBadge, 30000);
+    {% endif %}
+});
+
+function handleNotificationClick(event, notificationId, link) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Mark as read
+    fetch(`/api/notifications/${notificationId}/mark_as_read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reload notifications
+        const dropdown = document.getElementById('notificationDropdown');
+        if (dropdown.classList.contains('show')) {
+            const loadNotifications = function() {
+                fetch('/api/notifications/', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const notifications = Array.isArray(data) ? data : (data.results || []);
+                    const notificationList = document.getElementById('notificationList');
+                    notificationList.innerHTML = notifications.map(notification => `
+                        <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                             data-id="${notification.id}"
+                             onclick="handleNotificationClick(event, ${notification.id}, '${notification.link || '#'}')">
+                            <div class="notification-icon">
+                                <i class="fas ${notification.icon}"></i>
+                            </div>
+                            <div class="notification-content">
+                                <h6 class="notification-title">${escapeHtml(notification.title)}</h6>
+                                <p class="notification-message">${escapeHtml(notification.message)}</p>
+                                <div class="notification-time">${formatTime(notification.created_at)}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                });
+            };
+            loadNotifications();
+        }
+        
+        // Navigate if link exists
+        if (link && link !== '#') {
+            setTimeout(() => {
+                window.location.href = link;
+            }, 200);
+        }
+    })
+    .catch(error => console.error('Error marking notification as read:', error));
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    
+    return date.toLocaleDateString();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bellBtn = document.getElementById('notificationBellBtn');
+    const dropdown = document.getElementById('notificationDropdown');
+    const closeBtn = document.getElementById('closeNotifications');
+    const notificationList = document.getElementById('notificationList');
+    const badge = document.getElementById('notificationBadge');
+    const markAllReadBtn = document.getElementById('markAllRead');
+    
+    // Toggle dropdown
+    bellBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+        if (dropdown.classList.contains('show')) {
+            loadNotifications();
+        }
+    });
+    
+    // Close dropdown
+    closeBtn.addEventListener('click', function() {
+        dropdown.classList.remove('show');
+    });
+    
+    // Mark all as read
+    markAllReadBtn.addEventListener('click', function() {
+        fetch('/api/notifications/mark_all_as_read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadNotifications();
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.notification-bell-container')) {
+            dropdown.classList.remove('show');
+        }
+    });
+    
+    // Load notifications
+    function loadNotifications() {
+        {% if user.is_authenticated %}
+        fetch('/api/notifications/', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderNotifications(data.results || data);
+            updateBadge();
+        })
+        .catch(error => console.error('Error loading notifications:', error));
+        {% endif %}
+    }
+    
+    // Render notifications
+    function renderNotifications(notifications) {
+        if (!notifications || notifications.length === 0) {
+            notificationList.innerHTML = '<div class="notification-empty" style="padding: 40px 15px; text-align: center; color: #999; display: flex; align-items: center; justify-content: center; height: 200px;"><p style="margin: 0;">No notifications yet</p></div>';
+            return;
+        }
+        
+        notificationList.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                 data-id="${notification.id}"
+                 style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background-color 0.15s ease; display: flex; gap: 12px; align-items: flex-start; ${notification.is_read ? '' : 'background-color: #f0f4ff; border-left: 3px solid #8B4513; padding-left: 12px;'}"
+                 onclick="handleNotificationClick(event, ${notification.id}, '${notification.link || '#'}')">
+                <div class="notification-icon" style="font-size: 16px; color: #8B4513; margin-top: 2px; min-width: 20px; flex-shrink: 0;">
+                    <i class="fas ${notification.icon}"></i>
+                </div>
+                <div class="notification-content" style="flex: 1; min-width: 0;">
+                    <h6 class="notification-title" style="font-weight: 600; font-size: 13px; margin: 0 0 4px 0; color: #333; word-wrap: break-word;">${escapeHtml(notification.title)}</h6>
+                    <p class="notification-message" style="font-size: 12px; color: #666; margin: 0; word-wrap: break-word; line-height: 1.4;">${escapeHtml(notification.message)}</p>
+                    <div class="notification-time" style="font-size: 11px; color: #999; margin-top: 4px;">${formatTime(notification.created_at)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Update badge
+    function updateBadge() {
+        {% if user.is_authenticated %}
+        fetch('/api/notifications/unread_count/', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const count = data.unread_count;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        });
+        {% endif %}
+    }
+    
+    // Load notifications on page load
+    {% if user.is_authenticated %}
+    loadNotifications();
+    
+    // Refresh notifications every 30 seconds
+    setInterval(updateBadge, 30000);
+    {% endif %}
+});
+
+function handleNotificationClick(event, notificationId, link) {
+    event.preventDefault();
+    
+    // Mark as read
+    fetch(`/api/notifications/${notificationId}/mark_as_read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (link && link !== '#') {
+            window.location.href = link;
+        }
+        // Reload notifications
+        document.getElementById('notificationList').dispatchEvent(new Event('reload'));
+    });
+}
+
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    
+    return date.toLocaleDateString();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

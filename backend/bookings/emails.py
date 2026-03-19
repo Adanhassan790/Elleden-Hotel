@@ -9,9 +9,9 @@ from .sms import SMSService, SMSTemplates
 logger = logging.getLogger(__name__)
 
 
-def send_booking_confirmation(booking, send_email=True, send_sms=True):
-    """Send booking confirmation via SMS and optionally email"""
-    results = {'email': False, 'sms': False}
+def send_booking_confirmation(booking, send_email=True, send_sms=True, send_notification=True):
+    """Send booking confirmation via SMS, email, and notification"""
+    results = {'email': False, 'sms': False, 'notification': False}
     
     # Send SMS (primary notification method)
     if send_sms and booking.guest_phone:
@@ -26,6 +26,16 @@ def send_booking_confirmation(booking, send_email=True, send_sms=True):
     # Send email as backup
     if send_email and booking.guest_email:
         results['email'] = send_booking_confirmation_email(booking)
+    
+    # Send in-app notification
+    if send_notification and booking.guest:
+        try:
+            from pages.models import Notification
+            Notification.create_booking_notification(booking.guest, booking)
+            results['notification'] = True
+            logger.info(f"Notification created for booking {booking.booking_reference}")
+        except Exception as e:
+            logger.error(f"Failed to create notification for booking {booking.booking_reference}: {e}")
     
     return results
 
@@ -97,9 +107,9 @@ def send_booking_status_update_email(booking, old_status):
         return False
 
 
-def send_booking_status_update(booking, old_status, send_email=True, send_sms=True):
-    """Send booking status update via SMS and optionally email"""
-    results = {'email': False, 'sms': False}
+def send_booking_status_update(booking, old_status, send_email=True, send_sms=True, send_notification=True):
+    """Send booking status update via SMS, email, and notification"""
+    results = {'email': False, 'sms': False, 'notification': False}
     
     # Send SMS
     if send_sms and booking.guest_phone:
@@ -113,6 +123,15 @@ def send_booking_status_update(booking, old_status, send_email=True, send_sms=Tr
     # Send email
     if send_email and booking.guest_email:
         results['email'] = send_booking_status_update_email(booking, old_status)
+    
+    # Send in-app notification
+    if send_notification and booking.guest:
+        try:
+            from pages.models import Notification
+            Notification.create_status_notification(booking.guest, booking, old_status, booking.status)
+            results['notification'] = True
+        except Exception as e:
+            logger.error(f"Failed to create status notification: {e}")
     
     return results
 
@@ -148,10 +167,10 @@ def send_payment_receipt_email(payment):
         return False
 
 
-def send_payment_receipt(payment, send_email=True, send_sms=True):
-    """Send payment receipt via SMS and optionally email"""
+def send_payment_receipt(payment, send_email=True, send_sms=True, send_notification=True):
+    """Send payment receipt via SMS, email, and in-app notification"""
     booking = payment.booking
-    results = {'email': False, 'sms': False}
+    results = {'email': False, 'sms': False, 'notification': False}
     
     # Send SMS
     if send_sms and booking.guest_phone:
@@ -169,5 +188,14 @@ def send_payment_receipt(payment, send_email=True, send_sms=True):
     # Send email
     if send_email and booking.guest_email:
         results['email'] = send_payment_receipt_email(payment)
+    
+    # Send in-app notification
+    if send_notification and booking.guest:
+        try:
+            from pages.models import Notification
+            Notification.create_payment_notification(booking.guest, booking, payment=payment)
+            results['notification'] = True
+        except Exception as e:
+            logger.error(f"Failed to create payment notification: {e}")
     
     return results

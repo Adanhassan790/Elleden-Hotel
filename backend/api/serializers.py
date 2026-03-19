@@ -2,6 +2,7 @@ from rest_framework import serializers
 from accounts.models import User
 from rooms.models import RoomType, Room, RoomImage
 from bookings.models import Booking, Payment
+from pages.models import Notification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -97,6 +98,16 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         if data['check_out_date'] <= data['check_in_date']:
             raise serializers.ValidationError('Check-out date must be after check-in date')
         return data
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    booking_reference = serializers.CharField(source='booking.booking_reference', read_only=True, required=False)
+    
+    class Meta:
+        model = Notification
+        fields = ['id', 'title', 'message', 'notification_type', 'is_read', 'read_at',
+                  'icon', 'link', 'booking_reference', 'created_at']
+        read_only_fields = ['id', 'created_at', 'read_at']
 
 
 class PaymentSerializer(serializers.ModelSerializer):

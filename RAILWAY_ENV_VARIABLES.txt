@@ -1,0 +1,145 @@
+================================================================================
+RAILWAY ENVIRONMENT VARIABLES - ELLEDEN HOTEL
+================================================================================
+
+Copy these key-value pairs into your Railway project's Variables section.
+
+================================================================================
+DJANGO SETTINGS
+================================================================================
+
+Key: SECRET_KEY
+Value: django-superhz#aqk!qmj3-a)svo)$&6r2=f5hs7b5je=w#3^2&z=nqr7%p0&v9
+
+Key: DEBUG
+Value: False
+
+Key: ALLOWED_HOSTS
+Value: your-app-name.railway.app,www.your-app-name.railway.app
+(Replace "your-app-name" with your actual Railway app name)
+
+================================================================================
+DATABASE (Auto-set by Railway - Don't add manually)
+================================================================================
+When you add PostgreSQL service, Railway automatically creates:
+DATABASE_URL = postgresql://...
+
+================================================================================
+EMAIL SETTINGS (Gmail SMTP)
+================================================================================
+
+Key: EMAIL_HOST_USER
+Value: elledenhotelltd@gmail.com
+
+Key: EMAIL_HOST_PASSWORD
+Value: bcanouvfydpjokpy
+
+================================================================================
+M-PESA SETTINGS (Safaricom Daraja)
+================================================================================
+
+Key: MPESA_ENVIRONMENT
+Value: sandbox
+
+Key: MPESA_CONSUMER_KEY
+Value: uLdcxbFm1VC4yNGUO2zZiXJneeksC7I93XOdeZQc7gCG3R9N
+
+Key: MPESA_CONSUMER_SECRET
+Value: HpAdvzwtdCaO8N7mGKOt5sLMRXgHpGmzzFZ3AIg0vAQ8V6BnbpJdlI5WIJlajZli
+
+Key: MPESA_SHORTCODE
+Value: 174379
+
+Key: MPESA_PASSKEY
+Value: bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919
+
+Key: MPESA_CALLBACK_URL
+Value: https://your-app-name.railway.app/bookings/mpesa/callback/
+(Replace "your-app-name" with your Railway app domain)
+
+================================================================================
+AFRICA'S TALKING SMS SETTINGS
+================================================================================
+
+Key: AFRICASTALKING_USERNAME
+Value: elledenhotel
+
+Key: AFRICASTALKING_API_KEY
+Value: atsk_36edf8ab6f1b702ed43fd4727fac4abad432827e87b97df0d04f263063a1026bfb2bdbd4
+
+Key: AFRICASTALKING_SENDER_ID
+Value: ELLEDENHOTEL
+
+================================================================================
+STEPS TO ADD VARIABLES IN RAILWAY DASHBOARD
+================================================================================
+
+1. Go to https://railway.app
+2. Select your Elleden Hotel project
+3. Click on your app service (the main one)
+4. Go to the "Variables" tab
+5. Click "+ New Variable"
+6. Enter the Key and Value from above
+7. Click "+ New Variable" for each additional variable
+8. After adding all variables, click "Save & Redeploy"
+
+================================================================================
+HOW TO FIND YOUR APP DOMAIN
+================================================================================
+
+After successful deployment:
+1. Go to Railway Dashboard
+2. Select your project
+3. Look at the main service card
+4. Your domain will be shown as: https://yourapp-abc123.railway.app
+5. Note this domain and use it to replace "your-app-name" in:
+   - ALLOWED_HOSTS
+   - MPESA_CALLBACK_URL
+
+================================================================================
+DATABASE SETUP
+================================================================================
+
+1. In your Railway project, click "+ Add Service"
+2. Select "Database" → "PostgreSQL"
+3. Railway will automatically:
+   - Create a PostgreSQL database
+   - Set the DATABASE_URL environment variable
+   - Run migrations via Procfile release command
+
+================================================================================
+IMPORTANT NOTES
+================================================================================
+
+✓ Keep .env file locally (don't push to GitHub)
+✓ All secrets are in .gitignore (already configured)
+✓ Railway environment variables override .env
+✓ Use HTTPS (Railway handles this automatically)
+✓ Update MPESA_CALLBACK_URL after getting your domain
+✓ Test email sending after deployment
+✓ Test M-Pesa integration in sandbox mode first
+
+================================================================================
+CHECKLIST BEFORE GOING LIVE
+================================================================================
+
+[ ] DEBUG=False in Railway Variables
+[ ] ALLOWED_HOSTS set to your Railway domain
+[ ] All API keys and passwords set
+[ ] PostgreSQL database connected
+[ ] Migrations ran successfully (check Railway logs)
+[ ] Superuser created on production
+[ ] Email testing passed (try password reset)
+[ ] M-Pesa callback URL updated
+[ ] HTTPS working (automatic with Railway)
+[ ] Static files loading correctly
+
+================================================================================
+SUPPORT
+================================================================================
+
+For Railway issues: https://railway.app/support
+For Django issues: https://docs.djangoproject.com/
+For M-Pesa issues: https://developer.safaricom.co.ke/
+
+================================================================================
