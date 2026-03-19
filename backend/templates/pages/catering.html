@@ -392,21 +392,27 @@
     </div>
 </section>
 
+<!-- Package data for JavaScript (Django template rendered server-side) -->
+<div id="packages-data" style="display: none;">
+    {% for package in packages %}
+    <div data-id="{{ package.id }}" data-name="{{ package.name }}" data-price="{{ package.price_per_person }}"></div>
+    {% endfor %}
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const packageSelect = document.getElementById('id_package');
     const guestInput = document.getElementById('id_guest_count');
     const orderSummary = document.getElementById('order-summary');
     
-    // Package data
-    const packages = {
-        {% for package in packages %}
-        '{{ package.id }}': {
-            name: '{{ package.name }}',
-            price: {{ package.price_per_person }}
-        },
-        {% endfor %}
-    };
+    // Build packages object from data attributes
+    const packages = {};
+    document.querySelectorAll('#packages-data > div').forEach(el => {
+        packages[el.dataset.id] = {
+            name: el.dataset.name,
+            price: parseInt(el.dataset.price)
+        };
+    });
     
     // Handle package selection from cards
     document.querySelectorAll('.select-package-btn').forEach(btn => {
