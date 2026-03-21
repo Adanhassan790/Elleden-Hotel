@@ -25,3 +25,8 @@ if settings.DEBUG:
 admin.site.site_header = 'Elleden Hotel Administration'
 admin.site.site_title = 'Elleden Hotel Admin'
 admin.site.index_title = 'Welcome to Elleden Hotel Management System'
+
+# Custom error handlers
+handler400 = 'elleden.error_handlers.custom_400_error'
+handler404 = 'elleden.error_handlers.custom_404_error'
+handler500 = 'elleden.error_handlers.custom_500_error'
