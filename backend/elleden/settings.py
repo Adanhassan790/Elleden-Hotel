@@ -258,10 +258,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Use absolute path for STATIC_ROOT to ensure it works on all environments
+# On Railway (/app/backend) and locally (C:\...\backend\staticfiles)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Ensure the staticfiles directory exists
-STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+# Ensure the staticfiles directory exists before Django tries to use it
+import sys
+try:
+    STATIC_ROOT.mkdir(parents=True, exist_ok=True)
+    print(f"✓ Static root created/verified: {STATIC_ROOT}", file=sys.stderr)
+except Exception as e:
+    print(f"✗ Failed to create static root {STATIC_ROOT}: {e}", file=sys.stderr)
 
 # Use Django's default storage - WhiteNoise middleware will handle serving efficiently
 # This avoids manifest and compression issues that plague CompressedManifestStaticFilesStorage

@@ -5,8 +5,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.static import serve
-from django.urls import re_path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -18,10 +16,11 @@ urlpatterns = [
     path('api/', include('api.urls')),
 ]
 
-# Always serve static and media files (both locally and in production as fallback)
-# In production, WhiteNoise is the primary handler, Django is the fallback
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Only add Django static file serving if WhiteNoise isn't available (DEBUG mode or development)
+# In production, WhiteNoise (from wsgi.py) is the primary handler
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Admin site customization
 admin.site.site_header = 'Elleden Hotel Administration'

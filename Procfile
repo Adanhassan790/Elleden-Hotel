@@ -1,2 +1,2 @@
 web: cd backend && gunicorn elleden.wsgi --log-file -
-release: cd backend && mkdir -p staticfiles && python manage.py migrate && python manage.py collectstatic --noinput
+release: cd backend && python -c "import os; print(f'Working dir: {os.getcwd()}'); print(f'Static dir exists: {os.path.exists(\"static\")}'); import glob; print(f'CSS files found: {len(glob.glob(\"static/css/*.css\"))}')" && mkdir -p staticfiles && python manage.py migrate && python manage.py collectstatic --noinput --clear && python -c "import glob; print(f'Collected CSS files: {len(glob.glob(\"staticfiles/css/*.css\"))}')"
