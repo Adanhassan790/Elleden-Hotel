@@ -271,6 +271,21 @@ try:
 except Exception as e:
     print(f"✗ Failed to create static root {STATIC_ROOT}: {e}", file=sys.stderr)
 
+# Verify STATICFILES_DIRS exist
+for static_dir in STATICFILES_DIRS:
+    if isinstance(static_dir, str):
+        check_dir = Path(static_dir)
+    else:
+        check_dir = Path(static_dir)
+    
+    if check_dir.exists():
+        # Count files
+        css_count = len(list(check_dir.glob('css/*.css')))
+        js_count = len(list(check_dir.glob('js/*.js')))
+        print(f"✓ Found static dir: {check_dir} ({css_count} CSS, {js_count} JS)", file=sys.stderr)
+    else:
+        print(f"✗ Missing static dir: {check_dir}", file=sys.stderr)
+
 # Use Django's default storage - WhiteNoise middleware will handle serving efficiently
 # This avoids manifest and compression issues that plague CompressedManifestStaticFilesStorage
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
