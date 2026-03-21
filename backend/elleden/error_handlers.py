@@ -29,9 +29,9 @@ def custom_404_error(request, exception):
     # Let them return bare 404 so WhiteNoise/Django handlers work properly
     path = request.path
     if path.startswith('/static/') or path.startswith('/media/'):
-        # Return a plain 404 response for static files without rendering HTML
-        from django.http import Http404
-        raise Http404(f"Static file not found: {path}")
+        # Return a plain 404 response for static files (not HTML)
+        from django.http import HttpResponse
+        return HttpResponse(f"Not Found: {path}", status=404, content_type='text/plain')
     
     # For non-static 404s, show the error page
     logger.warning(f'404 error for path: {request.path}')
