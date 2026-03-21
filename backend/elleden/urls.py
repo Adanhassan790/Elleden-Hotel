@@ -16,11 +16,11 @@ urlpatterns = [
     path('api/', include('api.urls')),
 ]
 
-# Only add Django static file serving if WhiteNoise isn't available (DEBUG mode or development)
-# In production, WhiteNoise (from wsgi.py) is the primary handler
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve static and media files
+# In production: WhiteNoise (WSGI) is primary, Django routes are fallback
+# In development: Django routes serve directly
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Admin site customization
 admin.site.site_header = 'Elleden Hotel Administration'
