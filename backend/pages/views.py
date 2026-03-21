@@ -23,7 +23,11 @@ logger = logging.getLogger(__name__)
 
 def home(request):
     """Homepage view - redirects staff to admin dashboard"""
-    if request.user.is_authenticated and request.user.is_hotel_staff:
+    # Safely check if user is authenticated and has hotel staff permission
+    if (hasattr(request, 'user') and request.user and 
+        request.user.is_authenticated and 
+        hasattr(request.user, 'is_hotel_staff') and 
+        request.user.is_hotel_staff):
         return redirect('dashboard:admin_index')
     
     room_types = RoomType.objects.all()[:4]

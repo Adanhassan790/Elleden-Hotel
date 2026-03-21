@@ -7,11 +7,13 @@ def hotel_staff_required(view_func):
     """Decorator to check if user is hotel staff (staff, manager, or admin)"""
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
+        # Check if user exists and is authenticated
+        if not hasattr(request, 'user') or not request.user or not request.user.is_authenticated:
             messages.warning(request, 'Please login to access this page.')
             return redirect('accounts:login')
         
-        if not request.user.is_hotel_staff:
+        # Check if user has hotel staff permissions
+        if not hasattr(request.user, 'is_hotel_staff') or not request.user.is_hotel_staff:
             messages.error(request, 'You do not have permission to access the admin dashboard.')
             return redirect('dashboard:customer_index')
         
@@ -23,11 +25,13 @@ def manager_required(view_func):
     """Decorator to check if user is manager or admin"""
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
+        # Check if user exists and is authenticated
+        if not hasattr(request, 'user') or not request.user or not request.user.is_authenticated:
             messages.warning(request, 'Please login to access this page.')
             return redirect('accounts:login')
         
-        if not request.user.is_manager:
+        # Check if user has manager permissions
+        if not hasattr(request.user, 'is_manager') or not request.user.is_manager:
             messages.error(request, 'You need manager privileges to access this page.')
             return redirect('dashboard:admin_index')
         
@@ -39,7 +43,8 @@ def customer_required(view_func):
     """Decorator to ensure user is a customer (not staff)"""
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_authenticated:
+        # Check if user exists and is authenticated
+        if not hasattr(request, 'user') or not request.user or not request.user.is_authenticated:
             messages.warning(request, 'Please login to access this page.')
             return redirect('accounts:login')
         
