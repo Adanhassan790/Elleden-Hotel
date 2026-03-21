@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from elleden.debug_views import static_files_debug
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,6 +15,8 @@ urlpatterns = [
     path('rooms/', include('rooms.urls')),
     path('bookings/', include('bookings.urls')),
     path('api/', include('api.urls')),
+    # Debug endpoint
+    path('debug/static-files/', static_files_debug, name='debug_static_files'),
 ]
 
 # Serve static and media files
