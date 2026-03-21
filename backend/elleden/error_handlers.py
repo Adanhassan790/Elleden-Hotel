@@ -24,7 +24,14 @@ def custom_500_error(request):
 
 
 def custom_404_error(request, exception):
-    """Custom 404 error handler for page not found"""
+    """Custom 404 error handler for pages (not static files)"""
+    # Don't render HTML for static/media files
+    if request.path.startswith('/static/') or request.path.startswith('/media/'):
+        # Let Django return a bare 404 without HTML
+        from django.http import HttpResponse
+        return HttpResponse(status=404)
+    
+    # For actual page 404s, show the error page
     logger.warning(f'404 error for path: {request.path}')
     from django.shortcuts import render
     return render(request, '404.html', status=404)
