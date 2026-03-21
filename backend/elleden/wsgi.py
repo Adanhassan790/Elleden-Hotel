@@ -2,17 +2,27 @@
 WSGI config for Elleden Hotel project.
 """
 import os
+import sys
+from pathlib import Path
 from django.core.wsgi import get_wsgi_application
 from whitenoise import WhiteNoise
+from django.conf import settings
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'elleden.settings')
+
+# Initialize Django first
 application = get_wsgi_application()
 
-# Wrap with WhiteNoise to serve static files efficiently
+# Now we can access Django settings
+# Get the static files root from Django settings
+static_root = str(settings.STATIC_ROOT)
+
+# Wrap with WhiteNoise to serve static files
 application = WhiteNoise(
     application,
-    root=os.path.join(os.path.dirname(__file__), '..', 'staticfiles'),
+    root=static_root,
     max_age=31536000,  # 1 year
-    immutable_file_test=lambda path, url: '.css' in url or '.js' in url or '.woff' in url
+    mimetypes={'woff': 'font/woff', 'woff2': 'font/woff2'},
 )
+
 
