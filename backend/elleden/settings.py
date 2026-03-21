@@ -264,7 +264,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Ensure the staticfiles directory exists
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Use WhiteNoise's storage - simpler and more reliable than manifest-based storage
+STATICFILES_STORAGE = 'whitenoise.storage.WhiteNoiseStaticFilesStorage'
 
 # Media files
 MEDIA_URL = 'media/'
