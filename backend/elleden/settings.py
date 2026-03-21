@@ -264,8 +264,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Ensure the staticfiles directory exists
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 
-# Use WhiteNoise's storage - simpler and more reliable than manifest-based storage
-STATICFILES_STORAGE = 'whitenoise.storage.WhiteNoiseStaticFilesStorage'
+# Use Django's default storage - WhiteNoise middleware will handle serving efficiently
+# This avoids manifest and compression issues that plague CompressedManifestStaticFilesStorage
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Media files
 MEDIA_URL = 'media/'
