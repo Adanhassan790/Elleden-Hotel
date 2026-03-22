@@ -36,6 +36,33 @@ try:
             logger.info("✅ Migrations completed successfully")
         except Exception as migrate_error:
             logger.error(f"❌ Failed to run migrations: {migrate_error}")
+
+# CRITICAL: Seed initial data if not present
+# Ensures room types and catering packages are available
+try:
+    from rooms.models import RoomType
+    from pages.models import CateringPackage
+    
+    # Check if room types exist
+    if RoomType.objects.count() == 0:
+        logger.warning("⚠ No room types found! Seeding room types...")
+        try:
+            call_command('seed_room_types', verbosity=0)
+            logger.info("✅ Room types seeded successfully")
+        except Exception as e:
+            logger.error(f"❌ Failed to seed room types: {e}")
+    
+    # Check if catering packages exist
+    if CateringPackage.objects.count() == 0:
+        logger.warning("⚠ No catering packages found! Seeding catering packages...")
+        try:
+            call_command('seed_catering_packages', verbosity=0)
+            logger.info("✅ Catering packages seeded successfully")
+        except Exception as e:
+            logger.error(f"❌ Failed to seed catering packages: {e}")
+            
+except Exception as e:
+    logger.warning(f"⚠ Data seeding check failed: {e}")
             
 except Exception as e:
     logger.warning(f"⚠ Migration check failed: {e}")
