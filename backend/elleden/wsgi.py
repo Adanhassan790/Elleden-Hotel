@@ -17,6 +17,29 @@ application = get_wsgi_application()
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# CRITICAL: Ensure migrations are run on startup
+# This is essential for production where migrations might not have run
+try:
+    from django.core.management import call_command
+    from django.db import connection
+    
+    # Check if we can connect to database and if migrations have been applied
+    try:
+        with connection.cursor() as cursor:
+            # Try to query a table that should exist if migrations ran
+            cursor.execute("SELECT 1 FROM pages_cateringpackage LIMIT 1;")
+    except Exception as e:
+        # Table doesn't exist, run migrations
+        logger.warning(f"⚠ Migration tables missing! Running migrations now...")
+        try:
+            call_command('migrate', verbosity=1)
+            logger.info("✅ Migrations completed successfully")
+        except Exception as migrate_error:
+            logger.error(f"❌ Failed to run migrations: {migrate_error}")
+            
+except Exception as e:
+    logger.warning(f"⚠ Migration check failed: {e}")
+
 # CRITICAL: Copy static files on every startup to ensure they exist
 # This is crucial for production where staticfiles/ might be empty
 try:
