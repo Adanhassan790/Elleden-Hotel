@@ -5,6 +5,7 @@ Handles both dynamic content and static file serving.
 import os
 import sys
 import logging
+import shutil
 from pathlib import Path
 from django.core.wsgi import get_wsgi_application
 
@@ -16,7 +17,37 @@ application = get_wsgi_application()
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# WhiteNoise is optional - use it if available for efficiency
+# CRITICAL: Copy static files on every startup to ensure they exist
+# This is crucial for production where staticfiles/ might be empty
+try:
+    from django.conf import settings
+    
+    src = Path(settings.BASE_DIR) / 'static'
+    dst = Path(settings.STATIC_ROOT)
+    
+    if src.exists() and not (dst / 'css' / 'style.css').exists():
+        logger.warning(f"⚠ staticfiles/css/style.css missing! Copying from source...")
+        dst.mkdir(parents=True, exist_ok=True)
+        
+        copied_count = 0
+        for src_file in src.rglob('*'):
+            if src_file.is_file():
+                rel_path = src_file.relative_to(src)
+                dst_file = dst / rel_path
+                dst_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_file, dst_file)
+                copied_count += 1
+        
+        logger.info(f"✅ Copied {copied_count} static files to {dst}")
+    else:
+        logger.info(f"✓ Static files already present in {dst}")
+        
+except Exception as e:
+    logger.error(f"❌ Error ensuring static files: {e}")
+    import traceback
+    traceback.print_exc()
+
+# WhiteNoise is optional - use it for efficiency if files exist
 # But Django's serve view is the fallback
 from django.conf import settings
 
