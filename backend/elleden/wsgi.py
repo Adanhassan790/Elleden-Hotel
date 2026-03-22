@@ -36,6 +36,8 @@ try:
             logger.info("✅ Migrations completed successfully")
         except Exception as migrate_error:
             logger.error(f"❌ Failed to run migrations: {migrate_error}")
+except Exception as e:
+    logger.warning(f"⚠ Migration check failed: {e}")
 
 # CRITICAL: Seed initial data if not present
 # Ensures room types and catering packages are available
@@ -63,9 +65,6 @@ try:
             
 except Exception as e:
     logger.warning(f"⚠ Data seeding check failed: {e}")
-            
-except Exception as e:
-    logger.warning(f"⚠ Migration check failed: {e}")
 
 # CRITICAL: Copy static files on every startup to ensure they exist
 # This is crucial for production where staticfiles/ might be empty
