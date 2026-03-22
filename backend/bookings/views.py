@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 import logging
+import threading
 
 from .models import Booking, Payment, MpesaTransaction
 from .forms import BookingForm, GuestBookingForm, PaymentForm
@@ -56,8 +57,10 @@ class BookingCreateView(CreateView):
         
         booking.save()
         
-        # Send SMS and email confirmation
-        send_booking_confirmation(booking)
+        # Send SMS and email confirmation in background thread (non-blocking)
+        # This prevents worker timeout from SMS hanging
+        thread = threading.Thread(target=send_booking_confirmation, args=(booking,), daemon=True)
+        thread.start()
         
         messages.success(self.request, f'Booking submitted successfully! Your reference: {booking.booking_reference}. Please proceed to payment.')
         # Redirect directly to payment instead of confirmation
