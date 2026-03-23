@@ -9,31 +9,41 @@ from .sms import SMSService, SMSTemplates
 logger = logging.getLogger(__name__)
 
 
-def send_booking_confirmation(booking, send_email=True, send_sms=True, send_notification=True):
-    """Send booking confirmation via SMS, email, and notification"""
+def send_booking_confirmation(booking, send_email=False, send_sms=True, send_notification=True):
+    """Send booking confirmation via SMS only (email disabled).
+    
+    Args:
+        booking: Booking instance
+        send_email: Disabled by default (no organizational email access)
+        send_sms: Send SMS confirmation (primary notification)
+        send_notification: Create in-app notification for logged-in users
+    """
     results = {'email': False, 'sms': False, 'notification': False}
     
-    # Send SMS (primary notification method)
+    # Send SMS (primary and only external notification method)
     if send_sms and booking.guest_phone:
         try:
             sms_service = SMSService()
             message = SMSTemplates.room_booking_confirmation(booking)
             results['sms'] = sms_service.send_sms(booking.guest_phone, message)
-            logger.info(f"SMS confirmation sent for booking {booking.booking_reference}")
+            if results['sms']:
+                logger.info(f"✅ SMS confirmation sent for booking {booking.booking_reference}")
+            else:
+                logger.warning(f"⚠ SMS failed for booking {booking.booking_reference}")
         except Exception as e:
-            logger.error(f"Failed to send SMS for booking {booking.booking_reference}: {e}")
+            logger.error(f"❌ Failed to send SMS for booking {booking.booking_reference}: {e}")
     
-    # Send email as backup
+    # Email is disabled - not using organizational email
     if send_email and booking.guest_email:
-        results['email'] = send_booking_confirmation_email(booking)
+        logger.debug(f"Email sending is disabled for booking {booking.booking_reference}")
     
-    # Send in-app notification
+    # Send in-app notification for logged-in users
     if send_notification and booking.guest:
         try:
             from pages.models import Notification
             Notification.create_booking_notification(booking.guest, booking)
             results['notification'] = True
-            logger.info(f"Notification created for booking {booking.booking_reference}")
+            logger.info(f"In-app notification created for booking {booking.booking_reference}")
         except Exception as e:
             logger.error(f"Failed to create notification for booking {booking.booking_reference}: {e}")
     

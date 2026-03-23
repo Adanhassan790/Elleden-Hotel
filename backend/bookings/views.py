@@ -57,12 +57,12 @@ class BookingCreateView(CreateView):
         
         booking.save()
         
-        # Send SMS and email confirmation in background thread (non-blocking)
+        # Send SMS confirmation in background thread (non-blocking)
         # This prevents worker timeout from SMS hanging
         thread = threading.Thread(target=send_booking_confirmation, args=(booking,), daemon=True)
         thread.start()
         
-        messages.success(self.request, f'Booking submitted successfully! Your reference: {booking.booking_reference}. Please proceed to payment.')
+        messages.success(self.request, f'✅ Booking submitted! Reference: {booking.booking_reference}. SMS confirmation sent to {booking.guest_phone}. Please proceed to payment.')
         # Redirect directly to payment instead of confirmation
         return redirect('bookings:payment', pk=booking.pk)
 
