@@ -38,6 +38,8 @@ class CustomLoginView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
+        if user.is_superuser:
+            return '/admin/'
         if user.is_hotel_staff:
             return reverse_lazy('dashboard:admin_index')
         return reverse_lazy('dashboard:customer_index')
