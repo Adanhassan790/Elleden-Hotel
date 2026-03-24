@@ -6,9 +6,11 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
+from django.http import JsonResponse
 from elleden.debug_views import static_files_debug
 
 urlpatterns = [
+    path('healthcheck/', lambda r: JsonResponse({'status': 'ok', 'DEBUG': settings.DEBUG, 'ALLOWED_HOSTS': settings.ALLOWED_HOSTS}), name='healthcheck'),
     path('admin/', admin.site.urls),
     path('dashboard/', include('dashboard.urls')),
     path('', include('pages.urls')),
