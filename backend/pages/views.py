@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 import logging
+import threading
 
 from rooms.models import RoomType
 from .forms import (ContactForm, RestaurantReservationForm, ConferenceBookingForm, 
@@ -58,8 +59,10 @@ def restaurant(request):
         if form.is_valid():
             reservation = form.save()
             
-            # Send SMS confirmation (primary notification)
-            send_restaurant_reservation_sms(reservation)
+            # Send SMS confirmation in background thread (non-blocking)
+            # This prevents worker timeout from SMS hanging
+            thread = threading.Thread(target=send_restaurant_reservation_sms, args=(reservation,), daemon=True)
+            thread.start()
             
             # Send email as backup
             try:
@@ -86,6 +89,7 @@ def restaurant(request):
             except Exception:
                 pass
             
+            messages.success(request, f'✅ Reservation confirmed! Reference: {reservation.booking_reference}. SMS confirmation sent to {reservation.phone}. You will receive further details shortly.')
             return redirect('pages:restaurant_confirmation', pk=reservation.pk)
     else:
         form = RestaurantReservationForm()
@@ -106,8 +110,10 @@ def conference(request):
         if form.is_valid():
             booking = form.save()
             
-            # Send SMS confirmation (primary notification)
-            send_conference_booking_sms(booking)
+            # Send SMS confirmation in background thread (non-blocking)
+            # This prevents worker timeout from SMS hanging
+            thread = threading.Thread(target=send_conference_booking_sms, args=(booking,), daemon=True)
+            thread.start()
             
             # Send email as backup
             try:
@@ -134,6 +140,7 @@ def conference(request):
             except Exception:
                 pass
             
+            messages.success(request, f'✅ Conference booking received! Reference: {booking.booking_reference}. SMS confirmation sent to {booking.phone}. Our team will contact you shortly.')
             return redirect('pages:conference_confirmation', pk=booking.pk)
     else:
         form = ConferenceBookingForm()
@@ -156,8 +163,10 @@ def catering(request):
         if form.is_valid():
             order = form.save()
             
-            # Send SMS confirmation (primary notification)
-            send_catering_order_sms(order)
+            # Send SMS confirmation in background thread (non-blocking)
+            # This prevents worker timeout from SMS hanging
+            thread = threading.Thread(target=send_catering_order_sms, args=(order,), daemon=True)
+            thread.start()
             
             # Send email as backup
             try:
@@ -184,6 +193,7 @@ def catering(request):
             except Exception:
                 pass
             
+            messages.success(request, f'✅ Catering order received! Reference: {order.booking_reference}. SMS confirmation sent to {order.phone}. We will respond with pricing within 24 hours.')
             return redirect('pages:catering_confirmation', pk=order.pk)
     else:
         form = CateringOrderForm()
@@ -204,8 +214,10 @@ def contact(request):
         if form.is_valid():
             message = form.save()
             
-            # Send SMS acknowledgment (if phone provided)
-            send_contact_response_sms(message)
+            # Send SMS acknowledgment in background thread (non-blocking)
+            # This prevents worker timeout from SMS hanging
+            thread = threading.Thread(target=send_contact_response_sms, args=(message,), daemon=True)
+            thread.start()
             
             # Send email confirmations
             try:
