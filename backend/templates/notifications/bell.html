@@ -282,17 +282,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Mark all as read
     markAllReadBtn.addEventListener('click', function() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
         fetch('/api/notifications/mark_all_as_read/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
-                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                'Authorization': 'Bearer ' + token
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            loadNotifications();
-        });
+        .then(response => {
+            if (response.ok) {
+                loadNotifications();
+            }
+        })
+        .catch(error => console.error('Error marking all as read:', error));
     });
     
     // Close dropdown when clicking outside
@@ -305,14 +309,32 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load notifications
     function loadNotifications() {
         {% if user.is_authenticated %}
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            console.warn('No access token found');
+            return;
+        }
         fetch('/api/notifications/', {
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                'Authorization': 'Bearer ' + token
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.warn('Authentication expired. Please refresh the page.');
+                    return [];
+                }
+                throw new Error('Failed to load notifications');
+            }
+            return response.json();
+        })
         .then(data => {
-            renderNotifications(data.results || data);
+            if (Array.isArray(data)) {
+                renderNotifications(data);
+            } else if (data && data.results) {
+                renderNotifications(data.results);
+            }
             updateBadge();
         })
         .catch(error => console.error('Error loading notifications:', error));
@@ -346,21 +368,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update badge
     function updateBadge() {
         {% if user.is_authenticated %}
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            return;
+        }
         fetch('/api/notifications/unread_count/', {
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                'Authorization': 'Bearer ' + token
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 401) {
+                    console.warn('Authentication expired');
+                    return { unread_count: 0 };
+                }
+                throw new Error('Failed to update badge');
+            }
+            return response.json();
+        })
         .then(data => {
-            const count = data.unread_count;
+            const count = data.unread_count || 0;
             if (count > 0) {
                 badge.textContent = count > 99 ? '99+' : count;
                 badge.style.display = 'flex';
             } else {
                 badge.style.display = 'none';
             }
-        });
+        })
+        .catch(error => console.error('Error updating badge:', error));
         {% endif %}
     }
     
@@ -376,22 +412,54 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleNotificationClick(event, notificationId, link) {
     event.preventDefault();
     
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    
     // Mark as read
     fetch(`/api/notifications/${notificationId}/mark_as_read/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            'Authorization': 'Bearer ' + token
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (link && link !== '#') {
-            window.location.href = link;
+    .then(response => {
+        if (response.ok) {
+            if (link && link !== '#') {
+                window.location.href = link;
+            }
+            // Reload notifications
+            const loadNotifications = function() {
+                fetch('/api/notifications/', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(r => {
+                    if (r.ok) return r.json();
+                    return [];
+                })
+                .then(data => {
+                    const notifications = Array.isArray(data) ? data : (data.results || []);
+                    const notificationList = document.getElementById('notificationList');
+                    notificationList.innerHTML = notifications.map(notification => `
+                        <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
+                             data-id="${notification.id}"
+                             style="padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; gap: 12px; align-items: flex-start; ${notification.is_read ? '' : 'background-color: #f0f4ff; border-left: 3px solid #8B4513; padding-left: 12px;'}"
+                             onclick="handleNotificationClick(event, ${notification.id}, '${notification.link || '#'}')">
+                            <div class="notification-icon" style="font-size: 16px; color: #8B4513; margin-top: 2px; min-width: 20px;"><i class="fas ${notification.icon}"></i></div>
+                            <div class="notification-content" style="flex: 1;">
+                                <h6 class="notification-title" style="font-weight: 600; font-size: 13px; margin: 0 0 4px 0; color: #333;">${escapeHtml(notification.title)}</h6>
+                                <p class="notification-message" style="font-size: 12px; color: #666; margin: 0;">${escapeHtml(notification.message)}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                });
+            };
+            loadNotifications();
         }
-        // Reload notifications
-        document.getElementById('notificationList').dispatchEvent(new Event('reload'));
-    });
+    })
+    .catch(error => console.error('Error marking notification as read:', error));
 }
 
 function formatTime(dateString) {
