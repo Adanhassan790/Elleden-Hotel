@@ -498,3 +498,39 @@ def service_mpesa_callback(request):
     except Exception as e:
         logger.error(f"Service M-Pesa callback error: {str(e)}")
         return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})
+
+
+# ============ MANUAL PAYMENT VIEWS (Non-automated M-Pesa) ============
+
+def manual_service_payment(request, service_type, pk):
+    """
+    Display manual payment instructions for service (conference/catering)
+    Customer pays manually via M-Pesa to the provided paybill number
+    """
+    from django.conf import settings
+    
+    # Get the service object based on type
+    if service_type == 'conference':
+        service = get_object_or_404(ConferenceBooking, pk=pk)
+        service_name = "Conference Booking"
+        reference_field = 'booking_reference'
+    elif service_type == 'catering':
+        service = get_object_or_404(CateringOrder, pk=pk)
+        service_name = "Catering Order"
+        reference_field = 'order_reference'
+    else:
+        return render(request, '404.html', status=404)
+    
+    reference = getattr(service, reference_field, '')
+    
+    context = {
+        'service': service,
+        'service_type': service_type,
+        'service_name': service_name,
+        'paybill_number': settings.HOTEL_PAYBILL_NUMBER,
+        'account_number': reference,  # Use booking/order reference as account number
+        'account_name': settings.HOTEL_ACCOUNT_NAME,
+        'payment_instruction': settings.PAYMENT_INSTRUCTION_TEXT,
+    }
+    
+    return render(request, 'pages/manual_service_payment.html', context)

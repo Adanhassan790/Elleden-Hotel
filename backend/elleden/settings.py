@@ -380,6 +380,18 @@ MPESA_PASSKEY = os.getenv('MPESA_PASSKEY', 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c
 MPESA_CALLBACK_URL = os.getenv('MPESA_CALLBACK_URL', 'https://your-domain.com/bookings/mpesa/callback/')
 
 # =============================================================================
+# MANUAL PAYMENT SETTINGS (Non-automated M-Pesa)
+# =============================================================================
+# Display these bank details for customers to pay manually via M-Pesa
+HOTEL_PAYBILL_NUMBER = os.getenv('HOTEL_PAYBILL_NUMBER', '513010')  # Paybill number for M-Pesa
+HOTEL_ACCOUNT_NUMBER = os.getenv('HOTEL_ACCOUNT_NUMBER', '100001')   # Account reference (can be booking reference)
+HOTEL_ACCOUNT_NAME = os.getenv('HOTEL_ACCOUNT_NAME', 'ELLEDEN HOTEL')  # Name to use when paying
+PAYMENT_INSTRUCTION_TEXT = os.getenv(
+    'PAYMENT_INSTRUCTION_TEXT', 
+    'Please make payment via M-Pesa to the paybill number below. Use your booking reference as the account number.'
+)
+
+# =============================================================================
 # AFRICA'S TALKING SMS SETTINGS
 # =============================================================================
 # Sign up at https://account.africastalking.com

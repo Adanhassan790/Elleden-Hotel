@@ -305,3 +305,25 @@ def mpesa_callback(request):
     except Exception as e:
         logger.error(f'Error processing M-Pesa callback: {str(e)}')
         return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Accepted'})
+
+
+# ============ MANUAL PAYMENT VIEWS (Non-automated M-Pesa) ============
+
+def manual_payment(request, pk):
+    """
+    Display manual payment instructions for the booking
+    Customer pays manually via M-Pesa to the provided paybill number
+    """
+    from django.conf import settings
+    
+    booking = get_object_or_404(Booking, pk=pk)
+    
+    context = {
+        'booking': booking,
+        'paybill_number': settings.HOTEL_PAYBILL_NUMBER,
+        'account_number': booking.booking_reference,  # Use booking reference as account number
+        'account_name': settings.HOTEL_ACCOUNT_NAME,
+        'payment_instruction': settings.PAYMENT_INSTRUCTION_TEXT,
+    }
+    
+    return render(request, 'bookings/manual_payment.html', context)
