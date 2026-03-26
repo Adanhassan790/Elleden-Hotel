@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Instructions - {{ service_name }} - Elleden Hotel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-header {
+        background: linear-gradient(135deg, var(--primary-color, #8B7355) 0%, #6B5344 100%);
+        color: white;
+        padding: 3rem 0;
+    }
+    
+    .payment-details {
+        background: #f8f9fa;
+        border: 2px solid var(--primary-color, #8B7355);
+        border-radius: 10px;
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .payment-detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .payment-detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .payment-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .payment-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color, #8B7355);
+        font-family: monospace;
+    }
+    
+    .instruction-steps {
+        background: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border-radius: 5px;
+    }
+    
+    .instruction-steps ol {
+        margin-bottom: 0;
+        padding-left: 1.5rem;
+    }
+    
+    .instruction-steps li {
+        margin-bottom: 0.75rem;
+        line-height: 1.6;
+    }
+    
+    .amount-display {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color, #8B7355);
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .success-icon {
+        font-size: 3rem;
+        color: #28a745;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    
+    .copy-btn {
+        background: var(--primary-color, #8B7355);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    
+    .copy-btn:hover {
+        background: #6B5344;
+    }
+    
+    .service-summary {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .summary-row:last-child {
+        border-bottom: none;
+    }
+    
+    .summary-label {
+        color: #6c757d;
+    }
+    
+    .summary-value {
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="payment-header text-center">
+    <div class="container">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h1>Payment Instructions</h1>
+        <p class="mb-0 opacity-75">Your {{ service_name|lower }} has been submitted. Complete payment to confirm your booking.</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            
+            <!-- Payment Required Alert -->
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-bell me-2"></i>{{ service_name }} Confirmed (Pending Payment)</h5>
+                <p class="mb-0">
+                    Your {{ service_name|lower }} (Ref: <strong>
+                    {% if service_type == 'conference' %}
+                        {{ service.booking_reference }}
+                    {% else %}
+                        {{ service.order_reference }}
+                    {% endif %}
+                    </strong>) has been confirmed successfully. 
+                    <strong>Please complete the payment below to secure your booking.</strong>
+                </p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <!-- Service Summary -->
+            <div class="service-summary">
+                <h5 class="mb-3"><i class="fas fa-receipt me-2"></i>{{ service_name }} Summary</h5>
+                
+                {% if service_type == 'conference' %}
+                    <div class="summary-row">
+                        <span class="summary-label">Reference</span>
+                        <span class="summary-value">{{ service.booking_reference }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Organization</span>
+                        <span class="summary-value">{{ service.organization_name }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Event Date</span>
+                        <span class="summary-value">{{ service.event_date|date:"D, M d, Y" }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Number of Guests</span>
+                        <span class="summary-value">{{ service.number_of_guests }}</span>
+                    </div>
+                
+                {% elif service_type == 'catering' %}
+                    <div class="summary-row">
+                        <span class="summary-label">Reference</span>
+                        <span class="summary-value">{{ service.order_reference }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Client Name</span>
+                        <span class="summary-value">{{ service.customer_name }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Event Date</span>
+                        <span class="summary-value">{{ service.event_date|date:"D, M d, Y" }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Number of Guests</span>
+                        <span class="summary-value">{{ service.number_of_guests }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Amount to Pay -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-coins me-2"></i>Amount Due</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted mb-1">Total Amount</p>
+                    <div class="amount-display">
+                        {% if service_type == 'conference' %}
+                            KES {{ service.total_cost|floatformat:0|add:"0" }}
+                        {% else %}
+                            KES {{ service.total_price|floatformat:0|add:"0" }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>M-Pesa Payment Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="payment-details">
+                        <div class="payment-detail-item">
+                            <span class="payment-label">Paybill Number</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="payment-value" id="paybill">{{ paybill_number }}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('paybill')">
+                                    <i class="fas fa-copy me-1"></i>Copy
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-detail-item">
+                            <span class="payment-label">Account Number</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="payment-value" id="account">{{ account_number }}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('account')">
+                                    <i class="fas fa-copy me-1"></i>Copy
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="payment-detail-item">
+                            <span class="payment-label">Amount</span>
+                            <span class="payment-value">
+                                {% if service_type == 'conference' %}
+                                    KES {{ service.total_cost|floatformat:0|add:"0" }}
+                                {% else %}
+                                    KES {{ service.total_price|floatformat:0|add:"0" }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="payment-detail-item">
+                            <span class="payment-label">Account Name</span>
+                            <span class="payment-value">{{ account_name }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- How to Pay Instructions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>How to Pay</h5>
+                </div>
+                <div class="card-body">
+                    <div class="instruction-steps">
+                        <h6 class="mb-3">Follow these steps to complete your payment via M-Pesa:</h6>
+                        <ol>
+                            <li>
+                                <strong>Open M-Pesa on your mobile phone</strong>
+                            </li>
+                            <li>
+                                <strong>Click on "Lipa Na M-Pesa Online"</strong> or navigate to the payment option
+                            </li>
+                            <li>
+                                <strong>Enter Paybill Number:</strong> <code>{{ paybill_number }}</code>
+                            </li>
+                            <li>
+                                <strong>Enter Account Number:</strong> <code>{{ account_number }}</code> (your reference number)
+                            </li>
+                            <li>
+                                <strong>Enter Amount:</strong> 
+                                <code>
+                                {% if service_type == 'conference' %}
+                                    {{ service.total_cost|floatformat:0|add:"0" }}
+                                {% else %}
+                                    {{ service.total_price|floatformat:0|add:"0" }}
+                                {% endif %}
+                                </code>
+                            </li>
+                            <li>
+                                <strong>Enter your M-Pesa PIN</strong> and confirm
+                            </li>
+                            <li>
+                                <strong>You will receive confirmation</strong> via SMS once payment is processed
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Important Notes -->
+            <div class="alert alert-info" role="alert">
+                <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Important Notes</h6>
+                <ul class="mb-0">
+                    <li>Make sure to use your <strong>reference number as the account number</strong></li>
+                    <li>Keep your M-Pesa transaction receipt for your records</li>
+                    <li>Payment confirmation may take a few minutes to process</li>
+                    <li>If you experience any issues, please contact us immediately</li>
+                </ul>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-phone me-2"></i>Need Help?</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">If you have any questions or need assistance with payment, please contact us:</p>
+                    <p class="mb-1"><strong>Phone:</strong> +254 (your hotel number)</p>
+                    <p class="mb-0"><strong>Email:</strong> bookings@elledenhotel.com</p>
+                </div>
+            </card>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 justify-content-center mb-4">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back Home
+                </a>
+                <button onclick="window.print()" class="btn btn-outline-secondary">
+                    <i class="fas fa-print me-2"></i>Print Instructions
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        // Show success message
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        btn.style.background = '#28a745';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+        }, 2000);
+    }).catch(() => {
+        alert('Failed to copy. Please copy manually.');
+    });
+}
+</script>
+
+{% endblock %}
