@@ -249,7 +249,7 @@
                 });
             </script>
             
-            <form class="conference-form" method="POST">
+            <form class="conference-form" method="POST" action="{% url 'pages:conference' %}">
                 {% csrf_token %}
                 <div class="form-section">
                     <h3><i class="fas fa-building"></i> Organization Details</h3>

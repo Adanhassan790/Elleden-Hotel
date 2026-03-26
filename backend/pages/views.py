@@ -57,40 +57,52 @@ def restaurant(request):
     if request.method == 'POST':
         form = RestaurantReservationForm(request.POST)
         if form.is_valid():
-            reservation = form.save()
-            
-            # Send SMS confirmation in background thread (non-blocking)
-            # This prevents worker timeout from SMS hanging
-            thread = threading.Thread(target=send_restaurant_reservation_sms, args=(reservation,), daemon=True)
-            thread.start()
-            
-            # Send email as backup
             try:
-                subject = f'Restaurant Reservation Confirmation - {reservation.date}'
-                html_message = render_to_string('emails/restaurant_reservation.html', {
-                    'reservation': reservation,
-                })
-                send_mail(
-                    subject=subject,
-                    message='',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[reservation.email],
-                    html_message=html_message,
-                    fail_silently=True,
-                )
-                # Notify hotel staff
-                send_mail(
-                    subject=f'New Restaurant Reservation - {reservation.name}',
-                    message=f'New reservation from {reservation.name} for {reservation.guests} guests on {reservation.date} at {reservation.time}.',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                    fail_silently=True,
-                )
-            except Exception:
-                pass
+                reservation = form.save()
+                
+                # Send SMS confirmation in background thread (non-blocking)
+                # This prevents worker timeout from SMS hanging
+                def send_notifications():
+                    """Send SMS and email notifications safely in background"""
+                    try:
+                        send_restaurant_reservation_sms(reservation)
+                    except Exception as e:
+                        logger.error(f"Error sending SMS: {e}", exc_info=True)
+                    
+                    try:
+                        subject = f'Restaurant Reservation Confirmation - {reservation.date}'
+                        html_message = render_to_string('emails/restaurant_reservation.html', {
+                            'reservation': reservation,
+                        })
+                        send_mail(
+                            subject=subject,
+                            message='',
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[reservation.email],
+                            html_message=html_message,
+                            fail_silently=True,
+                        )
+                        # Notify hotel staff
+                        send_mail(
+                            subject=f'New Restaurant Reservation - {reservation.name}',
+                            message=f'New reservation from {reservation.name} for {reservation.guests} guests on {reservation.date} at {reservation.time}.',
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                            fail_silently=True,
+                        )
+                    except Exception as e:
+                        logger.error(f"Error sending email: {e}", exc_info=True)
+                
+                thread = threading.Thread(target=send_notifications, daemon=True)
+                thread.start()
+                
+                messages.success(request, f'✅ Reservation confirmed! Reference: {reservation.booking_reference}. SMS confirmation sent to {reservation.phone}. You will receive further details shortly.')
+                return redirect('pages:restaurant_confirmation', pk=reservation.pk)
             
-            messages.success(request, f'✅ Reservation confirmed! Reference: {reservation.booking_reference}. SMS confirmation sent to {reservation.phone}. You will receive further details shortly.')
-            return redirect('pages:restaurant_confirmation', pk=reservation.pk)
+            except Exception as e:
+                logger.error(f"Error creating restaurant reservation: {e}", exc_info=True)
+                messages.error(request, f'❌ Error creating reservation: {str(e)}')
+                return render(request, 'pages/restaurant.html', {'form': form})
     else:
         form = RestaurantReservationForm()
     
@@ -108,40 +120,48 @@ def conference(request):
     if request.method == 'POST':
         form = ConferenceBookingForm(request.POST)
         if form.is_valid():
-            booking = form.save()
-            
-            # Send SMS confirmation in background thread (non-blocking)
-            # This prevents worker timeout from SMS hanging
-            thread = threading.Thread(target=send_conference_booking_sms, args=(booking,), daemon=True)
-            thread.start()
-            
-            # Send email as backup
             try:
-                subject = f'Conference Booking Request Received - {booking.event_date}'
-                html_message = render_to_string('emails/conference_booking.html', {
-                    'booking': booking,
-                })
-                send_mail(
-                    subject=subject,
-                    message='',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[booking.email],
-                    html_message=html_message,
-                    fail_silently=True,
-                )
-                # Notify hotel staff
-                send_mail(
-                    subject=f'New Conference Booking - {booking.organization_name}',
-                    message=f'New conference booking from {booking.organization_name} for {booking.attendees} attendees on {booking.event_date}.',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                    fail_silently=True,
-                )
-            except Exception:
-                pass
-            
-            messages.success(request, f'✅ Conference booking received! Reference: {booking.booking_reference}. SMS confirmation sent to {booking.phone}. Our team will contact you shortly.')
-            return redirect('pages:conference_confirmation', pk=booking.pk)
+                booking = form.save()
+                
+                # Send SMS confirmation in background thread (non-blocking)
+                # This prevents worker timeout from SMS hanging
+                thread = threading.Thread(target=send_conference_booking_sms, args=(booking,), daemon=True)
+                thread.start()
+                
+                # Send email as backup
+                try:
+                    subject = f'Conference Booking Request Received - {booking.event_date}'
+                    html_message = render_to_string('emails/conference_booking.html', {
+                        'booking': booking,
+                    })
+                    send_mail(
+                        subject=subject,
+                        message='',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[booking.email],
+                        html_message=html_message,
+                        fail_silently=True,
+                    )
+                    # Notify hotel staff
+                    send_mail(
+                        subject=f'New Conference Booking - {booking.organization_name}',
+                        message=f'New conference booking from {booking.organization_name} for {booking.attendees} attendees on {booking.event_date}.',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
+                
+                messages.success(request, f'Conference booking received! Reference: {booking.booking_reference}. SMS confirmation sent to {booking.phone}. Our team will contact you shortly.')
+                return redirect('pages:conference_confirmation', pk=booking.pk)
+            except Exception as e:
+                logger.error(f"Error creating conference booking: {e}", exc_info=True)
+                messages.error(request, f'Error creating booking: {str(e)}')
+                return render(request, 'pages/conference.html', {'form': form})
+        else:
+            # Form is invalid, return with form errors
+            return render(request, 'pages/conference.html', {'form': form})
     else:
         form = ConferenceBookingForm()
     
@@ -161,40 +181,48 @@ def catering(request):
     if request.method == 'POST':
         form = CateringOrderForm(request.POST)
         if form.is_valid():
-            order = form.save()
-            
-            # Send SMS confirmation in background thread (non-blocking)
-            # This prevents worker timeout from SMS hanging
-            thread = threading.Thread(target=send_catering_order_sms, args=(order,), daemon=True)
-            thread.start()
-            
-            # Send email as backup
             try:
-                subject = f'Catering Order Received - {order.booking_reference}'
-                html_message = render_to_string('emails/catering_inquiry.html', {
-                    'order': order,
-                })
-                send_mail(
-                    subject=subject,
-                    message='',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[order.email],
-                    html_message=html_message,
-                    fail_silently=True,
-                )
-                # Notify hotel staff
-                send_mail(
-                    subject=f'New Catering Order - {order.booking_reference}',
-                    message=f'New catering order from {order.name} for {order.guest_count} guests on {order.event_date}. Total: KES {order.total_amount}',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                    fail_silently=True,
-                )
-            except Exception:
-                pass
-            
-            messages.success(request, f'✅ Catering order received! Reference: {order.booking_reference}. SMS confirmation sent to {order.phone}. We will respond with pricing within 24 hours.')
-            return redirect('pages:catering_confirmation', pk=order.pk)
+                order = form.save()
+                
+                # Send SMS confirmation in background thread (non-blocking)
+                # This prevents worker timeout from SMS hanging
+                thread = threading.Thread(target=send_catering_order_sms, args=(order,), daemon=True)
+                thread.start()
+                
+                # Send email as backup
+                try:
+                    subject = f'Catering Order Received - {order.booking_reference}'
+                    html_message = render_to_string('emails/catering_inquiry.html', {
+                        'order': order,
+                    })
+                    send_mail(
+                        subject=subject,
+                        message='',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[order.email],
+                        html_message=html_message,
+                        fail_silently=True,
+                    )
+                    # Notify hotel staff
+                    send_mail(
+                        subject=f'New Catering Order - {order.booking_reference}',
+                        message=f'New catering order from {order.name} for {order.guest_count} guests on {order.event_date}. Total: KES {order.total_amount}',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
+                
+                messages.success(request, f'Catering order received! Reference: {order.booking_reference}. SMS confirmation sent to {order.phone}. We will respond with pricing within 24 hours.')
+                return redirect('pages:catering_confirmation', pk=order.pk)
+            except Exception as e:
+                logger.error(f"Error creating catering order: {e}", exc_info=True)
+                messages.error(request, f'Error creating catering order: {str(e)}')
+                return render(request, 'pages/catering.html', {'form': form, 'packages': packages})
+        else:
+            # Form is invalid, return with form errors
+            return render(request, 'pages/catering.html', {'form': form, 'packages': packages})
     else:
         form = CateringOrderForm()
     

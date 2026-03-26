@@ -30,14 +30,14 @@ try:
             cursor.execute("SELECT 1 FROM pages_cateringpackage LIMIT 1;")
     except Exception as e:
         # Table doesn't exist, run migrations
-        logger.warning(f"⚠ Migration tables missing! Running migrations now...")
+        logger.warning("[WARNING] Migration tables missing! Running migrations now...")
         try:
             call_command('migrate', verbosity=1)
-            logger.info("✅ Migrations completed successfully")
+            logger.info("[OK] Migrations completed successfully")
         except Exception as migrate_error:
-            logger.error(f"❌ Failed to run migrations: {migrate_error}")
+            logger.error(f"[ERROR] Failed to run migrations: {migrate_error}")
 except Exception as e:
-    logger.warning(f"⚠ Migration check failed: {e}")
+    logger.warning(f"[WARNING] Migration check failed: {e}")
 
 # CRITICAL: Seed initial data if not present
 # Ensures room types and catering packages are available
@@ -47,24 +47,24 @@ try:
     
     # Check if room types exist
     if RoomType.objects.count() == 0:
-        logger.warning("⚠ No room types found! Seeding room types...")
+        logger.warning("[WARNING] No room types found! Seeding room types...")
         try:
             call_command('seed_room_types', verbosity=0)
-            logger.info("✅ Room types seeded successfully")
+            logger.info("[OK] Room types seeded successfully")
         except Exception as e:
-            logger.error(f"❌ Failed to seed room types: {e}")
+            logger.error(f"[ERROR] Failed to seed room types: {e}")
     
     # Check if catering packages exist
     if CateringPackage.objects.count() == 0:
-        logger.warning("⚠ No catering packages found! Seeding catering packages...")
+        logger.warning("[WARNING] No catering packages found! Seeding catering packages...")
         try:
             call_command('seed_catering_packages', verbosity=0)
-            logger.info("✅ Catering packages seeded successfully")
+            logger.info("[OK] Catering packages seeded successfully")
         except Exception as e:
-            logger.error(f"❌ Failed to seed catering packages: {e}")
+            logger.error(f"[ERROR] Failed to seed catering packages: {e}")
             
 except Exception as e:
-    logger.warning(f"⚠ Data seeding check failed: {e}")
+    logger.warning(f"[WARNING] Data seeding check failed: {e}")
 
 # CRITICAL: Copy static files on every startup to ensure they exist
 # This is crucial for production where staticfiles/ might be empty
@@ -87,12 +87,12 @@ try:
                 shutil.copy2(src_file, dst_file)
                 copied_count += 1
         
-        logger.info(f"✅ Copied {copied_count} static files to {dst}")
+        logger.info(f"[OK] Copied {copied_count} static files to {dst}")
     else:
-        logger.info(f"✓ Static files already present in {dst}")
+        logger.info(f"[OK] Static files already present in {dst}")
         
 except Exception as e:
-    logger.error(f"❌ Error ensuring static files: {e}")
+    logger.error(f"[ERROR] Error ensuring static files: {e}")
     import traceback
     traceback.print_exc()
 
@@ -122,10 +122,10 @@ try:
             },
             index_file=False,
         )
-        logger.info(f"✓ WhiteNoise initialized with {css_count} CSS files at {static_root}")
+        logger.info(f"[OK] WhiteNoise initialized with {css_count} CSS files at {static_root}")
     else:
-        logger.warning(f"⚠ WhiteNoise skipped - no CSS files found in {static_root}")
-        logger.warning("  Django serve view will handle static files instead")
+        logger.warning(f"[WARNING] WhiteNoise skipped - no CSS files found in {static_root}")
+        logger.warning("[INFO] Django serve view will handle static files instead")
         
 except ImportError:
     logger.info("WhiteNoise not available, using Django serve view for static files")

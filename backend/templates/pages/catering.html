@@ -301,7 +301,7 @@
                 });
             </script>
             
-            <form class="catering-form" method="POST">
+            <form class="catering-form" method="POST" action="{% url 'pages:catering' %}">
                 {% csrf_token %}
                 <div class="form-section">
                     <h3><i class="fas fa-user"></i> Contact Information</h3>
