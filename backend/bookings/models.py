@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from rooms.models import Room, RoomType
 import uuid
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -143,16 +144,21 @@ class Booking(models.Model):
             self.room.set_available()
         self.save()
         
-        # Send cancellation SMS to guest
+        # Send cancellation SMS to guest in background thread (non-blocking)
+        # This prevents worker timeout from SMS hanging
         if self.guest_phone:
-            try:
-                from .sms import SMSService, SMSTemplates
-                sms_service = SMSService()
-                message = SMSTemplates.booking_cancellation(self)
-                sms_service.send_sms(self.guest_phone, message)
-                logger.info(f"Cancellation SMS sent for booking {self.booking_reference}")
-            except Exception as e:
-                logger.error(f"Failed to send cancellation SMS for {self.booking_reference}: {e}")
+            def send_cancel_sms():
+                try:
+                    from .sms import SMSService, SMSTemplates
+                    sms_service = SMSService()
+                    message = SMSTemplates.booking_cancellation(self)
+                    sms_service.send_sms(self.guest_phone, message)
+                    logger.info(f"Cancellation SMS sent for booking {self.booking_reference}")
+                except Exception as e:
+                    logger.error(f"Failed to send cancellation SMS for {self.booking_reference}: {e}")
+            
+            thread = threading.Thread(target=send_cancel_sms, daemon=True)
+            thread.start()
     
     def confirm(self):
         self.status = 'confirmed'
@@ -247,20 +253,25 @@ class MpesaTransaction(models.Model):
             notes=f'M-Pesa STK Push payment from {self.phone_number}'
         )
         
-        # Send payment SMS to guest
+        # Send payment SMS to guest in background thread (non-blocking)
+        # This prevents worker timeout from SMS hanging
         if self.booking.guest_phone:
-            try:
-                from .sms import SMSService, SMSTemplates
-                sms_service = SMSService()
-                message = SMSTemplates.payment_confirmation(
-                    'Room Booking',
-                    self.booking.booking_reference,
-                    self.amount
-                )
-                sms_service.send_sms(self.booking.guest_phone, message)
-                logger.info(f"Payment SMS sent for booking {self.booking.booking_reference}")
-            except Exception as e:
-                logger.error(f"Failed to send payment SMS for {self.booking.booking_reference}: {e}")
+            def send_payment_sms():
+                try:
+                    from .sms import SMSService, SMSTemplates
+                    sms_service = SMSService()
+                    message = SMSTemplates.payment_confirmation(
+                        'Room Booking',
+                        self.booking.booking_reference,
+                        self.amount
+                    )
+                    sms_service.send_sms(self.booking.guest_phone, message)
+                    logger.info(f"Payment SMS sent for booking {self.booking.booking_reference}")
+                except Exception as e:
+                    logger.error(f"Failed to send payment SMS for {self.booking.booking_reference}: {e}")
+            
+            thread = threading.Thread(target=send_payment_sms, daemon=True)
+            thread.start()
         
         # Confirm booking if fully paid
         if self.booking.payment_status == 'paid' and self.booking.status == 'pending':
