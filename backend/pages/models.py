@@ -69,6 +69,17 @@ class RestaurantReservation(models.Model):
     time = models.TimeField(help_text="Preferred arrival time")
     guests = models.PositiveIntegerField()
     special_requests = models.TextField(blank=True)
+    
+    # Payment Fields
+    price_per_person = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_status = models.CharField(
+        max_length=20, 
+        choices=[('pending', 'Pending'), ('partial', 'Partial'), ('paid', 'Paid')], 
+        default='pending'
+    )
+    
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -84,7 +95,27 @@ class RestaurantReservation(models.Model):
     def save(self, *args, **kwargs):
         if not self.booking_reference:
             self.booking_reference = self.generate_reference()
+        
+        # Calculate total amount based on guests and price per person
+        if self.price_per_person <= 0:
+            self.price_per_person = 2500  # Default price per person if not set
+        
+        self.total_amount = self.price_per_person * self.guests
+        
+        # Update payment status based on payment amount
+        if self.amount_paid >= self.total_amount and self.total_amount > 0:
+            self.payment_status = 'paid'
+        elif self.amount_paid > 0:
+            self.payment_status = 'partial'
+        else:
+            self.payment_status = 'pending'
+        
         super().save(*args, **kwargs)
+    
+    @property
+    def balance_due(self):
+        """Calculate remaining balance to be paid"""
+        return max(0, self.total_amount - self.amount_paid)
     
     def generate_reference(self):
         from django.utils import timezone

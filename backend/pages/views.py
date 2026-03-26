@@ -256,20 +256,24 @@ def contact(request):
 
 def manual_service_payment(request, service_type, pk):
     """
-    Display manual payment instructions for service (conference/catering)
+    Display manual payment instructions for service (restaurant/conference/catering)
     Customer pays manually via M-Pesa to the provided paybill number
     """
     from django.conf import settings
     
     # Get the service object based on type
-    if service_type == 'conference':
+    if service_type == 'restaurant':
+        service = get_object_or_404(RestaurantReservation, pk=pk)
+        service_name = "Restaurant Reservation"
+        reference_field = 'booking_reference'
+    elif service_type == 'conference':
         service = get_object_or_404(ConferenceBooking, pk=pk)
         service_name = "Conference Booking"
         reference_field = 'booking_reference'
     elif service_type == 'catering':
         service = get_object_or_404(CateringOrder, pk=pk)
         service_name = "Catering Order"
-        reference_field = 'order_reference'
+        reference_field = 'booking_reference'
     else:
         return render(request, '404.html', status=404)
     

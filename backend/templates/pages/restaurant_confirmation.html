@@ -20,13 +20,22 @@
                             <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
                         </div>
                         <h2 class="mb-4">Your Reservation is Confirmed!</h2>
-                        <p class="text-muted mb-4">Reference: <strong>{{ reservation.booking_reference }}</strong></p>
+                        
+                        <!-- Reference Number -->
+                        <div class="card mb-4 border-primary">
+                            <div class="card-body text-center py-4">
+                                <p class="text-muted mb-2">Your Booking Reference</p>
+                                <p class="mb-0" style="font-size: 1.8rem; font-weight: 700; color: var(--primary-color); font-family: monospace; letter-spacing: 2px;">
+                                    {{ reservation.booking_reference }}
+                                </p>
+                            </div>
+                        </div>
                         
                         <div class="reservation-details bg-light p-4 rounded mb-4 text-start">
                             <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Reservation Details</h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <p class="mb-1"><strong>Name:</strong></p>
+                                    <p class="mb-1"><strong>Guest Name:</strong></p>
                                     <p class="text-muted">{{ reservation.name }}</p>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -47,7 +56,15 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <p class="mb-1"><strong>Time:</strong></p>
-                                    <p class="text-muted">{{ reservation.time }}</p>
+                                    <p class="text-muted">{{ reservation.time|time:"g:i A" }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Meal Type:</strong></p>
+                                    <p class="text-muted">{{ reservation.get_meal_time_display }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-1"><strong>Status:</strong></p>
+                                    <span class="badge bg-info">{{ reservation.get_status_display }}</span>
                                 </div>
                                 {% if reservation.special_requests %}
                                 <div class="col-12">
@@ -58,12 +75,61 @@
                             </div>
                         </div>
                         
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Payment:</strong> Please pay at the restaurant after your meal.
+                        <!-- Payment Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Payment Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1">{{ reservation.guests }} Guest(s) × KES {{ reservation.price_per_person|floatformat:0 }}</p>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <p class="mb-1">KES {{ reservation.total_amount|floatformat:0 }}</p>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="mb-0">Total Amount</h5>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <h5 class="mb-0 text-primary">KES {{ reservation.total_amount|floatformat:0 }}</h5>
+                                    </div>
+                                </div>
+                                
+                                {% if reservation.balance_due > 0 %}
+                                <hr>
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <span class="text-muted">Payment Status:</span>
+                                        <span class="badge bg-{% if reservation.payment_status == 'paid' %}success{% elif reservation.payment_status == 'partial' %}warning{% else %}danger{% endif %}">
+                                            {{ reservation.get_payment_status_display }}
+                                        </span>
+                                        {% if reservation.amount_paid > 0 %}
+                                        <br><small class="text-success">Paid: KES {{ reservation.amount_paid|floatformat:0 }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <a href="{% url 'pages:service_payment' 'restaurant' reservation.pk %}" class="btn btn-success btn-lg">
+                                            <i class="fas fa-mobile-alt me-2"></i>Pay KES {{ reservation.balance_due|floatformat:0 }}
+                                        </a>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <hr>
+                                <div class="text-center">
+                                    <span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i> Fully Paid</span>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                         
-                        <p class="text-muted mb-4">A confirmation email has been sent to {{ reservation.email }}</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Confirmation:</strong> A confirmation email has been sent to <strong>{{ reservation.email }}</strong>
+                        </div>
                         
                         <div class="d-flex justify-content-center gap-3 flex-wrap">
                             <a href="{% url 'pages:restaurant' %}" class="btn btn-outline-primary">
