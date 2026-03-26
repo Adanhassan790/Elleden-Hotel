@@ -5,25 +5,56 @@ Uses Africa's Talking SMS Gateway - Popular in Kenya
 import africastalking
 from django.conf import settings
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
+
+# Global flag to disable SMS if authentication repeatedly fails
+SMS_DISABLED = False
+SMS_INIT_LOCK = threading.Lock()
 
 
 class SMSService:
     """SMS Service using Africa's Talking"""
     
     def __init__(self):
+        global SMS_DISABLED
+        
+        # If SMS was previously disabled, skip initialization
+        if SMS_DISABLED:
+            self.sms = None
+            return
+        
         # Initialize Africa's Talking
         self.username = getattr(settings, 'AFRICASTALKING_USERNAME', 'sandbox')
         self.api_key = getattr(settings, 'AFRICASTALKING_API_KEY', '')
         self.sender_id = getattr(settings, 'AFRICASTALKING_SENDER_ID', None)  # Optional shortcode
         
-        if self.api_key:
-            africastalking.initialize(self.username, self.api_key)
-            self.sms = africastalking.SMS
-        else:
+        if not self.api_key:
             self.sms = None
-            logger.warning("Africa's Talking API key not configured")
+            logger.warning("⚠️ Africa's Talking API key not configured - SMS disabled")
+            SMS_DISABLED = True
+            return
+        
+        try:
+            # Thread-safe initialization with timeout concept
+            with SMS_INIT_LOCK:
+                africastalking.initialize(self.username, self.api_key)
+                self.sms = africastalking.SMS
+            
+            logger.info("✅ Africa's Talking initialized successfully")
+        except Exception as e:
+            self.sms = None
+            SMS_DISABLED = True
+            error_msg = str(e)
+            
+            # Log different types of errors
+            if "invalid" in error_msg.lower() or "auth" in error_msg.lower():
+                logger.error(f"❌ SMS AUTH FAILED: {error_msg}")
+                logger.error("⚠️ Africa's Talking credentials invalid - SMS disabled until fixed")
+                logger.error("🔧 Fix: Check AFRICASTALKING_USERNAME and AFRICASTALKING_API_KEY in settings")
+            else:
+                logger.error(f"❌ SMS initialization error: {error_msg} - SMS disabled")
     
     def format_phone(self, phone):
         """Format phone number to international format (+254...)"""
