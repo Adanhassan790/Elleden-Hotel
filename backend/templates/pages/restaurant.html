@@ -4,6 +4,121 @@
 {% block title %}Restaurant & Dining - Elleden Hotel (K) Limited{% endblock %}
 {% block nav_restaurant %}active{% endblock %}
 
+{% block extra_css %}
+<style>
+    .reservation-form-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #333;
+        font-size: 0.95rem;
+    }
+    
+    .form-control {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(212, 103, 31, 0.1);
+        background: #fafafa;
+    }
+    
+    .form-control:hover {
+        border-color: #999;
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-error {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .form-submit {
+        text-align: center;
+        margin-top: 30px;
+    }
+    
+    .form-submit .btn {
+        min-width: 300px;
+    }
+    
+    .form-submit p {
+        color: #6c757d;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+        .reservation-form-wrapper {
+            padding: 25px;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .form-submit .btn {
+            width: 100%;
+        }
+    }
+    
+    .alert {
+        animation: slideDown 0.3s ease-in;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Page Header -->
 <section class="page-header page-header-restaurant">
@@ -232,46 +347,134 @@
                 });
             </script>
             
-            <form class="reservation-form" method="POST">
+            <form class="reservation-form" method="POST" action="{% url 'pages:restaurant' %}" enctype="multipart/form-data" novalidate>
                 {% csrf_token %}
+                
+                <!-- Display form non-field errors -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        <strong>Errors:</strong>
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
                 <div class="form-grid">
+                    <!-- Full Name Field -->
                     <div class="form-group">
-                        <label for="id_name"><i class="fas fa-user"></i> Full Name *</label>
+                        <label for="id_name"><i class="fas fa-user"></i> Full Name <span style="color: red;">*</span></label>
                         {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.name.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
+                    
+                    <!-- Email Address Field -->
                     <div class="form-group">
-                        <label for="id_email"><i class="fas fa-envelope"></i> Email Address *</label>
+                        <label for="id_email"><i class="fas fa-envelope"></i> Email Address <span style="color: red;">*</span></label>
                         {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.email.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
+                    
+                    <!-- Phone Number Field -->
                     <div class="form-group">
-                        <label for="id_phone"><i class="fas fa-phone"></i> Phone Number *</label>
+                        <label for="id_phone"><i class="fas fa-phone"></i> Phone Number <span style="color: red;">*</span></label>
                         {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.phone.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
+                    
+                    <!-- Date Field -->
                     <div class="form-group">
-                        <label for="id_date"><i class="fas fa-calendar"></i> Date *</label>
+                        <label for="id_date"><i class="fas fa-calendar"></i> Date <span style="color: red;">*</span></label>
                         {{ form.date }}
+                        {% if form.date.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.date.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
+                    
+                    <!-- Meal Time Field -->
                     <div class="form-group">
-                        <label for="id_meal_time"><i class="fas fa-utensils"></i> Meal *</label>
+                        <label for="id_meal_time"><i class="fas fa-utensils"></i> Meal <span style="color: red;">*</span></label>
                         {{ form.meal_time }}
+                        {% if form.meal_time.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.meal_time.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
+                    
+                    <!-- Preferred Time Field -->
                     <div class="form-group">
-                        <label for="id_time"><i class="fas fa-clock"></i> Preferred Time *</label>
+                        <label for="id_time"><i class="fas fa-clock"></i> Preferred Time <span style="color: red;">*</span></label>
                         {{ form.time }}
+                        {% if form.time.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.time.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
+                    
+                    <!-- Number of Guests Field -->
                     <div class="form-group">
-                        <label for="id_guests"><i class="fas fa-users"></i> Number of Guests *</label>
+                        <label for="id_guests"><i class="fas fa-users"></i> Number of Guests <span style="color: red;">*</span></label>
                         {{ form.guests }}
+                        {% if form.guests.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.guests.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
+                    
+                    <!-- Special Requests Field (Full Width) -->
                     <div class="form-group full-width">
-                        <label for="id_special_requests"><i class="fas fa-comment"></i> Special Requests</label>
+                        <label for="id_special_requests"><i class="fas fa-comment"></i> Special Requests (Optional)</label>
                         {{ form.special_requests }}
+                        {% if form.special_requests.errors %}
+                            <div class="form-error" style="color: #dc3545; font-size: 0.85rem; margin-top: 5px;">
+                                {% for error in form.special_requests.errors %}
+                                    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small style="color: #6c757d; display: block; margin-top: 5px;">Tell us about any dietary requirements, allergies, or special occasions</small>
                     </div>
                 </div>
-                <div class="form-submit">
-                    <button type="submit" class="btn btn-primary btn-lg">
+                
+                <div class="form-submit" style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; max-width: 400px;">
                         <i class="fas fa-calendar-check"></i> Submit Reservation
                     </button>
+                    <p style="color: #6c757d; margin-top: 15px; font-size: 0.9rem;">
+                        <i class="fas fa-info-circle"></i> We'll confirm your reservation within 2 hours
+                    </p>
                 </div>
             </form>
         </div>
