@@ -282,13 +282,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Mark all as read
     markAllReadBtn.addEventListener('click', function() {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
         fetch('/api/notifications/mark_all_as_read/', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
-                'Authorization': 'Bearer ' + token
+                'X-Requested-With': 'XMLHttpRequest',
             }
         })
         .then(response => {
@@ -309,23 +308,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load notifications
     function loadNotifications() {
         {% if user.is_authenticated %}
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            console.warn('No access token found');
-            return;
-        }
         fetch('/api/notifications/', {
+            credentials: 'include',
             headers: {
-                'Authorization': 'Bearer ' + token
+                'X-Requested-With': 'XMLHttpRequest',
             }
         })
         .then(response => {
             if (!response.ok) {
-                if (response.status === 401) {
-                    console.warn('Authentication expired. Please refresh the page.');
-                    return [];
-                }
-                throw new Error('Failed to load notifications');
+                console.warn('Failed to load notifications:', response.status);
+                return [];
             }
             return response.json();
         })
@@ -368,22 +360,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update badge
     function updateBadge() {
         {% if user.is_authenticated %}
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            return;
-        }
         fetch('/api/notifications/unread_count/', {
+            credentials: 'include',
             headers: {
-                'Authorization': 'Bearer ' + token
+                'X-Requested-With': 'XMLHttpRequest',
             }
         })
         .then(response => {
             if (!response.ok) {
-                if (response.status === 401) {
-                    console.warn('Authentication expired');
-                    return { unread_count: 0 };
-                }
-                throw new Error('Failed to update badge');
+                return { unread_count: 0 };
             }
             return response.json();
         })
@@ -412,15 +397,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function handleNotificationClick(event, notificationId, link) {
     event.preventDefault();
     
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
-    
     // Mark as read
     fetch(`/api/notifications/${notificationId}/mark_as_read/`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
-            'Authorization': 'Bearer ' + token
+            'X-Requested-With': 'XMLHttpRequest',
         }
     })
     .then(response => {
@@ -431,8 +414,9 @@ function handleNotificationClick(event, notificationId, link) {
             // Reload notifications
             const loadNotifications = function() {
                 fetch('/api/notifications/', {
+                    credentials: 'include',
                     headers: {
-                        'Authorization': 'Bearer ' + token
+                        'X-Requested-With': 'XMLHttpRequest',
                     }
                 })
                 .then(r => {
