@@ -14,7 +14,7 @@ from rooms.models import Room, RoomType
 from bookings.models import Booking, Payment
 from pages.models import (
     RestaurantReservation, ConferenceBooking, CateringOrder,
-    CateringPackage, ServicePayment, ServiceMpesaTransaction
+    CateringPackage, ServicePayment
 )
 
 
@@ -591,12 +591,10 @@ def payments_management(request):
     """View all payments across services"""
     room_payments = Payment.objects.select_related('booking').order_by('-created_at')[:50]
     service_payments = ServicePayment.objects.order_by('-created_at')[:50]
-    service_mpesa = ServiceMpesaTransaction.objects.order_by('-created_at')[:30]
     
     context = {
         'room_payments': room_payments,
         'service_payments': service_payments,
-        'service_mpesa': service_mpesa,
     }
     
     return render(request, 'dashboard/admin/payments.html', context)

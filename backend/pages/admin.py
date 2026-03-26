@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (ContactMessage, RestaurantReservation, ConferenceBooking, 
                      CateringInquiry, CateringPackage, CateringOrder, 
-                     ServicePayment, ServiceMpesaTransaction, Notification)
+                     ServicePayment, Notification)
 
 
 @admin.register(ContactMessage)
@@ -179,16 +179,6 @@ class ServicePaymentAdmin(admin.ModelAdmin):
     list_filter = ['service_type', 'payment_method', 'created_at']
     search_fields = ['transaction_reference']
     readonly_fields = ['created_at']
-    ordering = ['-created_at']
-
-
-@admin.register(ServiceMpesaTransaction)
-class ServiceMpesaTransactionAdmin(admin.ModelAdmin):
-    list_display = ['service_type', 'conference_booking', 'catering_order', 'checkout_request_id', 
-                   'amount', 'phone_number', 'mpesa_receipt_number', 'status', 'created_at']
-    list_filter = ['service_type', 'status', 'created_at']
-    search_fields = ['checkout_request_id', 'mpesa_receipt_number', 'phone_number']
-    readonly_fields = ['created_at', 'updated_at']
     ordering = ['-created_at']
 
 

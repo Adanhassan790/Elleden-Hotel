@@ -17,10 +17,4 @@ urlpatterns = [
     
     # Manual Payment URLs (Non-automated M-Pesa)
     path('payment/<str:service_type>/<int:pk>/', views.manual_service_payment, name='service_payment'),
-    
-    # M-Pesa Payment URLs for services (kept for backwards compatibility, can be removed if not needed)
-    # path('payment/<str:service_type>/<int:pk>/', views.initiate_service_payment, name='initiate_service_payment'),
-    path('payment/<str:service_type>/<int:pk>/mpesa/status/<int:transaction_id>/', views.service_payment_status, name='service_payment_status'),
-    path('payment/check-status/<int:transaction_id>/', views.check_service_payment_status, name='check_service_payment_status'),
-    path('payment/mpesa-callback/', views.service_mpesa_callback, name='service_mpesa_callback'),
 ]
