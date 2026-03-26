@@ -11,7 +11,7 @@ import json
 from accounts.models import User
 from accounts.decorators import hotel_staff_required
 from rooms.models import Room, RoomType
-from bookings.models import Booking, Payment, MpesaTransaction
+from bookings.models import Booking, Payment
 from pages.models import (
     RestaurantReservation, ConferenceBooking, CateringOrder,
     CateringPackage, ServicePayment, ServiceMpesaTransaction
@@ -90,21 +90,6 @@ def admin_dashboard(request):
     # Total revenue
     total_revenue_month = room_revenue_month + service_revenue_month
     total_revenue_all = room_revenue_total + service_revenue_total
-    
-    # ========== M-PESA STATISTICS ==========
-    mpesa_room_count = MpesaTransaction.objects.filter(status='completed').count()
-    mpesa_service_count = ServiceMpesaTransaction.objects.filter(status='completed').count()
-    total_mpesa_transactions = mpesa_room_count + mpesa_service_count
-    
-    mpesa_room_amount = MpesaTransaction.objects.filter(
-        status='completed'
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    
-    mpesa_service_amount = ServiceMpesaTransaction.objects.filter(
-        status='completed'
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    
-    total_mpesa_amount = mpesa_room_amount + mpesa_service_amount
     
     # ========== CHART DATA ==========
     # Revenue trend (last 30 days)
@@ -197,10 +182,6 @@ def admin_dashboard(request):
         'service_revenue_month': service_revenue_month,
         'total_revenue_month': total_revenue_month,
         'total_revenue_all': total_revenue_all,
-        
-        # M-Pesa stats
-        'total_mpesa_transactions': total_mpesa_transactions,
-        'total_mpesa_amount': total_mpesa_amount,
         
         # Chart data
         'revenue_chart_data': json.dumps(revenue_data),
@@ -610,13 +591,11 @@ def payments_management(request):
     """View all payments across services"""
     room_payments = Payment.objects.select_related('booking').order_by('-created_at')[:50]
     service_payments = ServicePayment.objects.order_by('-created_at')[:50]
-    room_mpesa = MpesaTransaction.objects.order_by('-created_at')[:30]
     service_mpesa = ServiceMpesaTransaction.objects.order_by('-created_at')[:30]
     
     context = {
         'room_payments': room_payments,
         'service_payments': service_payments,
-        'room_mpesa': room_mpesa,
         'service_mpesa': service_mpesa,
     }
     
