@@ -214,22 +214,23 @@
         <div class="reservation-form-wrapper">
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-success alert-dismissible fade show" role="alert" id="auto-dismiss-alert" style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;" data-auto-dismiss="true">
                         <i class="fas fa-check-circle"></i> {{ message }}
                         <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; float: right; cursor: pointer;">&times;</button>
                     </div>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const alert = document.getElementById('auto-dismiss-alert');
-                            if (alert) {
-                                setTimeout(function() {
-                                    alert.style.display = 'none';
-                                }, 3000);
-                            }
-                        });
-                    </script>
                 {% endfor %}
             {% endif %}
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const alerts = document.querySelectorAll('[data-auto-dismiss="true"]');
+                    alerts.forEach(function(alert) {
+                        setTimeout(function() {
+                            alert.style.display = 'none';
+                        }, 3000);
+                    });
+                });
+            </script>
             
             <form class="reservation-form" method="POST">
                 {% csrf_token %}
