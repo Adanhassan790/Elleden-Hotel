@@ -1,7 +1,7 @@
 # Generated migration to fix missing database columns from form fixes
-# Uses SQL to safely add columns if they don't exist (idempotent for PostgreSQL)
+# Uses direct AddField operations for better compatibility
 
-from django.db import migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -11,41 +11,33 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add missing payment columns to RestaurantReservation using raw SQL
-        # Using PostgreSQL's "IF NOT EXISTS" syntax for idempotency
-        migrations.RunSQL(
-            sql="""
-            DO $$
-            BEGIN
-                IF NOT EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name='pages_restaurantreservation' AND column_name='price_per_person'
-                ) THEN
-                    ALTER TABLE pages_restaurantreservation ADD COLUMN price_per_person NUMERIC(10,2) DEFAULT 2500;
-                END IF;
-                
-                IF NOT EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name='pages_restaurantreservation' AND column_name='total_amount'
-                ) THEN
-                    ALTER TABLE pages_restaurantreservation ADD COLUMN total_amount NUMERIC(10,2) DEFAULT 0;
-                END IF;
-                
-                IF NOT EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name='pages_restaurantreservation' AND column_name='amount_paid'
-                ) THEN
-                    ALTER TABLE pages_restaurantreservation ADD COLUMN amount_paid NUMERIC(10,2) DEFAULT 0;
-                END IF;
-                
-                IF NOT EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name='pages_restaurantreservation' AND column_name='payment_status'
-                ) THEN
-                    ALTER TABLE pages_restaurantreservation ADD COLUMN payment_status VARCHAR(20) DEFAULT 'pending';
-                END IF;
-            END $$;
-            """,
-            reverse_sql="-- This migration cannot be safely reversed",
+        # Add missing payment columns to RestaurantReservation
+        migrations.AddField(
+            model_name='restaurantreservation',
+            name='price_per_person',
+            field=models.DecimalField(decimal_places=2, default=2500, max_digits=10),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='restaurantreservation',
+            name='total_amount',
+            field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='restaurantreservation',
+            name='amount_paid',
+            field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='restaurantreservation',
+            name='payment_status',
+            field=models.CharField(
+                choices=[('pending', 'Pending'), ('partial', 'Partial'), ('paid', 'Paid')],
+                default='pending',
+                max_length=20
+            ),
+            preserve_default=True,
         ),
     ]
