@@ -321,7 +321,7 @@ def manual_payment(request, pk):
     context = {
         'booking': booking,
         'paybill_number': settings.HOTEL_PAYBILL_NUMBER,
-        'account_number': booking.booking_reference,  # Use booking reference as account number
+        'account_number': settings.HOTEL_ACCOUNT_NUMBER,  # Use actual hotel account number
         'account_name': settings.HOTEL_ACCOUNT_NAME,
         'payment_instruction': settings.PAYMENT_INSTRUCTION_TEXT,
     }

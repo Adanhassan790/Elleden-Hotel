@@ -528,7 +528,7 @@ def manual_service_payment(request, service_type, pk):
         'service_type': service_type,
         'service_name': service_name,
         'paybill_number': settings.HOTEL_PAYBILL_NUMBER,
-        'account_number': reference,  # Use booking/order reference as account number
+        'account_number': settings.HOTEL_ACCOUNT_NUMBER,  # Use actual hotel account number
         'account_name': settings.HOTEL_ACCOUNT_NAME,
         'payment_instruction': settings.PAYMENT_INSTRUCTION_TEXT,
     }
