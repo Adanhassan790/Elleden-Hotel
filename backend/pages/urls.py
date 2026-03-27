@@ -14,6 +14,7 @@ urlpatterns = [
     path('catering/', views.catering, name='catering'),
     path('catering/confirmation/<int:pk>/', views.catering_confirmation, name='catering_confirmation'),
     path('contact/', views.contact, name='contact'),
+    path('notifications/', views.notifications, name='notifications'),
     
     # Manual Payment URLs (Non-automated M-Pesa)
     path('payment/<str:service_type>/<int:pk>/', views.manual_service_payment, name='service_payment'),

@@ -529,7 +529,7 @@ class Notification(models.Model):
             notification_type=notification_type,
             booking=booking,
             icon='fa-calendar-check',
-            link=f'/bookings/{booking.id}/'
+            link=f'/bookings/confirmation/{booking.id}/'
         )
     
     @staticmethod
@@ -546,7 +546,7 @@ class Notification(models.Model):
             booking=booking,
             payment=payment,
             icon='fa-credit-card',
-            link=f'/bookings/{booking.id}/'
+            link=f'/bookings/confirmation/{booking.id}/'
         )
     
     @staticmethod
@@ -569,5 +569,5 @@ class Notification(models.Model):
             notification_type='booking_status',
             booking=booking,
             icon='fa-info-circle',
-            link=f'/bookings/{booking.id}/'
+            link=f'/bookings/confirmation/{booking.id}/'
         )

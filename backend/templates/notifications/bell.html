@@ -2,244 +2,105 @@
 
 <!-- Notification Bell -->
 <div class="notification-bell-container">
-    <button class="notification-bell" id="notificationBellBtn" type="button" title="Notifications">
+    {% if user.is_authenticated %}
+    <a href="{% url 'pages:notifications' %}" class="notification-bell" id="notificationBellBtn" type="button" title="Notifications">
         <i class="fas fa-bell"></i>
         <span class="notification-badge" id="notificationBadge">0</span>
-    </button>
-    
-    <!-- Notification Dropdown -->
-    <div class="notification-dropdown" id="notificationDropdown">
-        <div class="notification-header">
-            <h5>Notifications</h5>
-            <button type="button" id="closeNotifications">×</button>
-        </div>
-        
-        <div class="notification-list" id="notificationList">
-            <div class="notification-empty">
-                <p>No notifications yet</p>
-            </div>
-        </div>
-        
-        <div class="notification-footer">
-            <button class="btn-link" id="markAllRead">Mark all as read</button>
-        </div>
-    </div>
+    </a>
+    {% else %}
+    <a href="{% url 'accounts:login' %}" class="notification-bell" id="notificationBellBtn" type="button" title="Login to view notifications">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge" id="notificationBadge">0</span>
+    </a>
+    {% endif %}
 </div>
 
 <style>
-    /* Inline critical styles to prevent FOUC */
-    #notificationBellBtn:hover {
-        transform: scale(1.12);
-        color: #5D2E0C;
+    .notification-bell-container {
+        position: relative;
+        display: flex;
+        align-items: center;
     }
-    
-    .notification-dropdown.show {
-        display: flex !important;
+
+    .notification-bell {
+        position: relative;
+        background: none;
+        border: none;
+        color: #f5a962;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    
-    .notification-item:hover {
-        background-color: #f8f9fa;
+
+    .notification-bell:hover {
+        transform: scale(1.15);
+        color: #d4860d;
+        background-color: rgba(245, 169, 98, 0.1);
     }
-    
-    .notification-item.unread {
-        background-color: #f0f4ff;
-        border-left: 3px solid #8B4513;
-        padding-left: 12px;
+
+    .notification-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #e74c3c;
+        color: white;
+        border-radius: 50%;
+        min-width: 20px;
+        height: 20px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        padding: 2px;
     }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const bellBtn = document.getElementById('notificationBellBtn');
-    const dropdown = document.getElementById('notificationDropdown');
-    const closeBtn = document.getElementById('closeNotifications');
-    const notificationList = document.getElementById('notificationList');
-    const badge = document.getElementById('notificationBadge');
-    const markAllReadBtn = document.getElementById('markAllRead');
+    {% if user.is_authenticated %}
     
-    // Toggle dropdown
-    bellBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        dropdown.classList.toggle('show');
-        if (dropdown.classList.contains('show')) {
-            loadNotifications();
-        }
-    });
-    
-    // Close dropdown
-    closeBtn.addEventListener('click', function() {
-        dropdown.classList.remove('show');
-    });
-    
-    // Mark all as read
-    markAllReadBtn.addEventListener('click', function() {
-        fetch('/api/notifications/mark_all_as_read/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            loadNotifications();
-        })
-        .catch(error => console.error('Error marking all as read:', error));
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.notification-bell-container')) {
-            dropdown.classList.remove('show');
-        }
-    });
-    
-    // Load notifications
-    function loadNotifications() {
-        {% if user.is_authenticated %}
-        fetch('/api/notifications/', {
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const notifications = Array.isArray(data) ? data : (data.results || []);
-            renderNotifications(notifications);
-            updateBadge();
-        })
-        .catch(error => console.error('Error loading notifications:', error));
-        {% endif %}
-    }
-    
-    // Render notifications
-    function renderNotifications(notifications) {
-        if (!notifications || notifications.length === 0) {
-            notificationList.innerHTML = '<div class="notification-empty"><p>No notifications yet</p></div>';
-            return;
-        }
-        
-        notificationList.innerHTML = notifications.map(notification => `
-            <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
-                 data-id="${notification.id}"
-                 onclick="handleNotificationClick(event, ${notification.id}, '${notification.link || '#'}')">
-                <div class="notification-icon">
-                    <i class="fas ${notification.icon}"></i>
-                </div>
-                <div class="notification-content">
-                    <h6 class="notification-title">${escapeHtml(notification.title)}</h6>
-                    <p class="notification-message">${escapeHtml(notification.message)}</p>
-                    <div class="notification-time">${formatTime(notification.created_at)}</div>
-                </div>
-            </div>
-        `).join('');
-    }
-    
-    // Update badge
+    // Update badge count
     function updateBadge() {
-        {% if user.is_authenticated %}
+        const badge = document.getElementById('notificationBadge');
+        if (!badge) return; // Element doesn't exist, skip
+        
         fetch('/api/notifications/unread_count/', {
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                'X-CSRFToken': getCookie('csrftoken')
             }
         })
         .then(response => response.json())
         .then(data => {
-            const count = data.unread_count;
-            badge.textContent = count > 99 ? '99+' : count;
-            badge.style.display = count > 0 ? 'flex' : 'none';
+            if (badge && data.unread_count !== undefined) {
+                const count = data.unread_count;
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            }
         })
-        .catch(error => console.error('Error updating badge:', error));
-        {% endif %}
+        .catch(error => {
+            console.error('Error updating badge:', error);
+            // If API fails, just hide the badge
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        });
     }
     
-    // Load notifications on page load
-    {% if user.is_authenticated %}
-    loadNotifications();
+    // Load badge on page load
+    updateBadge();
     
     // Refresh badge count every 30 seconds
     setInterval(updateBadge, 30000);
+    
     {% endif %}
 });
-
-function handleNotificationClick(event, notificationId, link) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Mark as read
-    fetch(`/api/notifications/${notificationId}/mark_as_read/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Reload notifications
-        const dropdown = document.getElementById('notificationDropdown');
-        if (dropdown.classList.contains('show')) {
-            const loadNotifications = function() {
-                fetch('/api/notifications/', {
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const notifications = Array.isArray(data) ? data : (data.results || []);
-                    const notificationList = document.getElementById('notificationList');
-                    notificationList.innerHTML = notifications.map(notification => `
-                        <div class="notification-item ${notification.is_read ? '' : 'unread'}" 
-                             data-id="${notification.id}"
-                             onclick="handleNotificationClick(event, ${notification.id}, '${notification.link || '#'}')">
-                            <div class="notification-icon">
-                                <i class="fas ${notification.icon}"></i>
-                            </div>
-                            <div class="notification-content">
-                                <h6 class="notification-title">${escapeHtml(notification.title)}</h6>
-                                <p class="notification-message">${escapeHtml(notification.message)}</p>
-                                <div class="notification-time">${formatTime(notification.created_at)}</div>
-                            </div>
-                        </div>
-                    `).join('');
-                });
-            };
-            loadNotifications();
-        }
-        
-        // Navigate if link exists
-        if (link && link !== '#') {
-            setTimeout(() => {
-                window.location.href = link;
-            }, 200);
-        }
-    })
-    .catch(error => console.error('Error marking notification as read:', error));
-}
-
-function formatTime(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now - date;
-    
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-    
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    
-    return date.toLocaleDateString();
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 function getCookie(name) {
     let cookieValue = null;

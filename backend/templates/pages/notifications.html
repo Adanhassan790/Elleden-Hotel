@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Elleden Hotel{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notifications-container {
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 0 15px;
+    }
+
+    .notifications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .notifications-header h1 {
+        margin: 0;
+        font-size: 28px;
+        color: #333;
+    }
+
+    .notification-badge-count {
+        display: inline-block;
+        background: var(--primary-color);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .notifications-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .notifications-actions button,
+    .notifications-actions a {
+        padding: 10px 15px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .notifications-actions button:hover,
+    .notifications-actions a:hover {
+        background: #f5f5f5;
+        border-color: var(--primary-color);
+    }
+
+    .notifications-actions button.btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .notifications-actions button.btn-primary:hover {
+        background: var(--primary-dark);
+    }
+
+    .notification-item {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 12px;
+        display: flex;
+        gap: 15px;
+        transition: all 0.3s;
+        border-left: 4px solid transparent;
+    }
+
+    .notification-item.unread {
+        background: #f9f9f9;
+        border-left-color: var(--primary-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .notification-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .notification-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f5f5;
+        border-radius: 50%;
+        font-size: 18px;
+        color: var(--primary-color);
+    }
+
+    .notification-content {
+        flex-grow: 1;
+    }
+
+    .notification-title {
+        margin: 0 0 5px 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .notification-message {
+        margin: 0 0 8px 0;
+        font-size: 14px;
+        color: #666;
+        line-height: 1.4;
+    }
+
+    .notification-time {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .notification-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .notification-btn:hover {
+        background: #f5f5f5;
+        border-color: var(--primary-color);
+    }
+
+    .notification-read-indicator {
+        width: 8px;
+        height: 8px;
+        background: var(--primary-color);
+        border-radius: 50%;
+    }
+
+    .notifications-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+    }
+
+    .notifications-empty i {
+        font-size: 48px;
+        color: #ddd;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .notification-item {
+            flex-direction: column;
+        }
+
+        .notification-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .notification-btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .notifications-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .notifications-actions {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <!-- Notifications Header -->
+    <div class="notifications-header">
+        <h1><i class="fas fa-bell"></i> Notifications</h1>
+        {% if unread_count > 0 %}
+        <span class="notification-badge-count">{{ unread_count }} Unread</span>
+        {% endif %}
+    </div>
+
+    <!-- Action Buttons -->
+    {% if notifications %}
+    <div class="notifications-actions">
+        <form method="POST" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="mark_all_read">
+            <button type="submit" class="btn-primary" onclick="return confirm('Mark all notifications as read?')">
+                <i class="fas fa-check-circle"></i> Mark All As Read
+            </button>
+        </form>
+        <a href="{% url 'pages:home' %}" class="btn-link">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Notifications List -->
+    {% if notifications %}
+        {% for notification in notifications %}
+        <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.id }}">
+            <div class="notification-icon">
+                <i class="fas fa-{{ notification.icon|default:'bell' }}"></i>
+            </div>
+            
+            <div class="notification-content">
+                <h6 class="notification-title">{{ notification.title }}</h6>
+                <p class="notification-message">{{ notification.message }}</p>
+                <div class="notification-time">
+                    <i class="fas fa-clock"></i>
+                    {% with elapsed=notification.created_at|timesince %}
+                        {{ elapsed }} ago
+                    {% endwith %}
+                </div>
+            </div>
+
+            <div class="notification-actions">
+                {% if not notification.is_read %}
+                <div class="notification-read-indicator" title="Unread"></div>
+                {% endif %}
+                
+                <button class="notification-btn mark-read-btn" data-id="{{ notification.id }}" 
+                        onclick="markNotificationAsRead(event, {{ notification.id }})"
+                        title="{% if notification.is_read %}Mark as unread{% else %}Mark as read{% endif %}">
+                    <i class="fas fa-{% if notification.is_read %}eye-slash{% else %}check{% endif %}"></i>
+                </button>
+
+                {% if notification.link %}
+                <a href="{{ notification.link }}" class="notification-btn" title="View">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="notifications-empty">
+            <i class="fas fa-inbox"></i>
+            <p><strong>No notifications yet</strong></p>
+            <p style="font-size: 14px; margin-top: 10px;">You're all caught up! Check back later for updates.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function markNotificationAsRead(event, notificationId) {
+    event.preventDefault();
+    const csrftoken = getCookie('csrftoken');
+    
+    fetch(`/api/notifications/${notificationId}/mark_as_read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Reload the page to show updated status
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating notification');
+    });
+}
+</script>
+{% endblock %}

@@ -17,11 +17,11 @@ if os.getenv('SECRET_KEY') is None and not os.getenv('DEBUG') == 'True':
     raise ValueError('SECRET_KEY environment variable is not set. Set it before running the app.')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
-
+#DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG =  True# Default to False for safety
 # Allowed hosts - add your production domain
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',') + ['.railway.app', '.up.railway.app']
-
+#ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',') + ['.railway.app', '.up.railway.app']
+ALLOWED_HOSTS =[]
 # =============================================================================
 # PRODUCTION SECURITY SETTINGS
 # =============================================================================

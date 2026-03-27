@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -14,7 +15,7 @@ from rooms.models import RoomType
 from .forms import (ContactForm, RestaurantReservationForm, ConferenceBookingForm, 
                    CateringInquiryForm, CateringOrderForm)
 from .models import (RestaurantReservation, ConferenceBooking, CateringOrder, 
-                    CateringPackage, ServicePayment)
+                    CateringPackage, ServicePayment, Notification)
 from .notifications import (send_restaurant_reservation_sms, send_conference_booking_sms,
                            send_catering_order_sms, send_service_payment_sms, 
                            send_contact_response_sms)
@@ -59,6 +60,17 @@ def restaurant(request):
         if form.is_valid():
             try:
                 reservation = form.save()
+                
+                # Create notification if user is logged in
+                if request.user.is_authenticated:
+                    Notification.objects.create(
+                        user=request.user,
+                        title=f'Restaurant Reservation Submitted - {reservation.booking_reference}',
+                        message=f'Your reservation for {reservation.guests} guest(s) on {reservation.date.strftime("%b %d, %Y")} has been submitted.',
+                        notification_type='booking',
+                        icon='fa-utensils',
+                        link=f'/restaurant/confirmation/{reservation.pk}/'
+                    )
                 
                 # Send SMS confirmation in background thread (non-blocking)
                 # This prevents worker timeout from SMS hanging
@@ -123,35 +135,52 @@ def conference(request):
             try:
                 booking = form.save()
                 
-                # Send SMS confirmation in background thread (non-blocking)
-                # This prevents worker timeout from SMS hanging
-                thread = threading.Thread(target=send_conference_booking_sms, args=(booking,), daemon=True)
-                thread.start()
+                # Create notification if user is logged in
+                if request.user.is_authenticated:
+                    Notification.objects.create(
+                        user=request.user,
+                        title=f'Conference Booking Submitted - {booking.booking_reference}',
+                        message=f'Your conference booking for {booking.attendees} attendees on {booking.event_date.strftime("%b %d, %Y")} has been submitted.',
+                        notification_type='booking',
+                        icon='fa-users',
+                        link=f'/conference/confirmation/{booking.pk}/'
+                    )
                 
-                # Send email as backup
-                try:
-                    subject = f'Conference Booking Request Received - {booking.event_date}'
-                    html_message = render_to_string('emails/conference_booking.html', {
-                        'booking': booking,
-                    })
-                    send_mail(
-                        subject=subject,
-                        message='',
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[booking.email],
-                        html_message=html_message,
-                        fail_silently=True,
-                    )
-                    # Notify hotel staff
-                    send_mail(
-                        subject=f'New Conference Booking - {booking.organization_name}',
-                        message=f'New conference booking from {booking.organization_name} for {booking.attendees} attendees on {booking.event_date}.',
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                        fail_silently=True,
-                    )
-                except Exception:
-                    pass
+                # Send notifications in background thread (non-blocking)
+                # This prevents worker timeout from SMS/email hanging
+                def send_notifications():
+                    """Send SMS and email notifications safely in background"""
+                    try:
+                        send_conference_booking_sms(booking)
+                    except Exception as e:
+                        logger.error(f"Error sending SMS: {e}", exc_info=True)
+                    
+                    try:
+                        subject = f'Conference Booking Request Received - {booking.event_date}'
+                        html_message = render_to_string('emails/conference_booking.html', {
+                            'booking': booking,
+                        })
+                        send_mail(
+                            subject=subject,
+                            message='',
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[booking.email],
+                            html_message=html_message,
+                            fail_silently=True,
+                        )
+                        # Notify hotel staff
+                        send_mail(
+                            subject=f'New Conference Booking - {booking.organization_name}',
+                            message=f'New conference booking from {booking.organization_name} for {booking.attendees} attendees on {booking.event_date}.',
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                            fail_silently=True,
+                        )
+                    except Exception as e:
+                        logger.error(f"Error sending email: {e}", exc_info=True)
+                
+                thread = threading.Thread(target=send_notifications, daemon=True)
+                thread.start()
                 
                 messages.success(request, f'Conference booking received! Reference: {booking.booking_reference}. SMS confirmation sent to {booking.phone}. Our team will contact you shortly.')
                 return redirect('pages:conference_confirmation', pk=booking.pk)
@@ -184,35 +213,52 @@ def catering(request):
             try:
                 order = form.save()
                 
-                # Send SMS confirmation in background thread (non-blocking)
-                # This prevents worker timeout from SMS hanging
-                thread = threading.Thread(target=send_catering_order_sms, args=(order,), daemon=True)
-                thread.start()
+                # Create notification if user is logged in
+                if request.user.is_authenticated:
+                    Notification.objects.create(
+                        user=request.user,
+                        title=f'Catering Order Submitted - {order.booking_reference}',
+                        message=f'Your catering order for {order.guest_count} guests on {order.event_date.strftime("%b %d, %Y")} has been submitted.',
+                        notification_type='booking',
+                        icon='fa-utensils',
+                        link=f'/catering/confirmation/{order.pk}/'
+                    )
                 
-                # Send email as backup
-                try:
-                    subject = f'Catering Order Received - {order.booking_reference}'
-                    html_message = render_to_string('emails/catering_inquiry.html', {
-                        'order': order,
-                    })
-                    send_mail(
-                        subject=subject,
-                        message='',
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[order.email],
-                        html_message=html_message,
-                        fail_silently=True,
-                    )
-                    # Notify hotel staff
-                    send_mail(
-                        subject=f'New Catering Order - {order.booking_reference}',
-                        message=f'New catering order from {order.name} for {order.guest_count} guests on {order.event_date}. Total: KES {order.total_amount}',
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                        fail_silently=True,
-                    )
-                except Exception:
-                    pass
+                # Send notifications in background thread (non-blocking)
+                # This prevents worker timeout from SMS/email hanging
+                def send_notifications():
+                    """Send SMS and email notifications safely in background"""
+                    try:
+                        send_catering_order_sms(order)
+                    except Exception as e:
+                        logger.error(f"Error sending SMS: {e}", exc_info=True)
+                    
+                    try:
+                        subject = f'Catering Order Received - {order.booking_reference}'
+                        html_message = render_to_string('emails/catering_inquiry.html', {
+                            'order': order,
+                        })
+                        send_mail(
+                            subject=subject,
+                            message='',
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[order.email],
+                            html_message=html_message,
+                            fail_silently=True,
+                        )
+                        # Notify hotel staff
+                        send_mail(
+                            subject=f'New Catering Order - {order.booking_reference}',
+                            message=f'New catering order from {order.name} for {order.guest_count} guests on {order.event_date}. Total: KES {order.total_amount}',
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                            fail_silently=True,
+                        )
+                    except Exception as e:
+                        logger.error(f"Error sending email: {e}", exc_info=True)
+                
+                thread = threading.Thread(target=send_notifications, daemon=True)
+                thread.start()
                 
                 messages.success(request, f'Catering order received! Reference: {order.booking_reference}. SMS confirmation sent to {order.phone}. We will respond with pricing within 24 hours.')
                 return redirect('pages:catering_confirmation', pk=order.pk)
@@ -242,35 +288,51 @@ def contact(request):
         if form.is_valid():
             message = form.save()
             
-            # Send SMS acknowledgment in background thread (non-blocking)
-            # This prevents worker timeout from SMS hanging
-            thread = threading.Thread(target=send_contact_response_sms, args=(message,), daemon=True)
-            thread.start()
+            # Create notification if user is logged in
+            if request.user.is_authenticated:
+                Notification.objects.create(
+                    user=request.user,
+                    title='Contact Message Received',
+                    message=f'We received your message regarding "{message.get_subject_display()}". Our team will get back to you soon.',
+                    notification_type='message',
+                    icon='fa-envelope',
+                )
             
-            # Send email confirmations
-            try:
-                subject = f'Thank You for Contacting Elleden Hotel'
-                html_message = render_to_string('emails/contact_confirmation.html', {
-                    'message': message,
-                })
-                send_mail(
-                    subject=subject,
-                    message='',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[message.email],
-                    html_message=html_message,
-                    fail_silently=True,
-                )
-                # Notify hotel staff
-                send_mail(
-                    subject=f'New Contact Message - {message.get_subject_display()}',
-                    message=f'New message from {message.full_name} ({message.email}):\n\n{message.message}',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[settings.DEFAULT_FROM_EMAIL],
-                    fail_silently=True,
-                )
-            except Exception:
-                pass
+            # Send notifications in background thread (non-blocking)
+            # This prevents worker timeout from SMS/email hanging
+            def send_notifications():
+                """Send SMS and email notifications safely in background"""
+                try:
+                    send_contact_response_sms(message)
+                except Exception as e:
+                    logger.error(f"Error sending SMS: {e}", exc_info=True)
+                
+                try:
+                    subject = f'Thank You for Contacting Elleden Hotel'
+                    html_message = render_to_string('emails/contact_confirmation.html', {
+                        'message': message,
+                    })
+                    send_mail(
+                        subject=subject,
+                        message='',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[message.email],
+                        html_message=html_message,
+                        fail_silently=True,
+                    )
+                    # Notify hotel staff
+                    send_mail(
+                        subject=f'New Contact Message - {message.get_subject_display()}',
+                        message=f'New message from {message.full_name} ({message.email}):\n\n{message.message}',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    logger.error(f"Error sending email: {e}", exc_info=True)
+            
+            thread = threading.Thread(target=send_notifications, daemon=True)
+            thread.start()
             
             messages.success(request, 'Thank you for your message! We will get back to you soon.')
             return redirect('pages:contact')
@@ -318,3 +380,23 @@ def manual_service_payment(request, service_type, pk):
     }
     
     return render(request, 'pages/manual_service_payment.html', context)
+
+
+# ============ NOTIFICATIONS VIEW ============
+
+@login_required
+def notifications(request):
+    """Display all notifications for the authenticated user"""
+    user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Mark all as read if requested
+    if request.method == 'POST' and request.POST.get('action') == 'mark_all_read':
+        user_notifications.update(is_read=True)
+        messages.success(request, 'All notifications marked as read.')
+        return redirect('pages:notifications')
+    
+    context = {
+        'notifications': user_notifications,
+        'unread_count': user_notifications.filter(is_read=False).count(),
+    }
+    return render(request, 'pages/notifications.html', context)

@@ -16,6 +16,7 @@ from .models import Booking, Payment
 from .forms import BookingForm, GuestBookingForm, PaymentForm
 from .emails import send_booking_confirmation
 from rooms.models import Room, RoomType
+from pages.models import Notification
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,18 @@ class BookingCreateView(CreateView):
             booking.guest = self.request.user
         
         booking.save()
+        
+        # Create notification if user is logged in
+        if booking.guest:
+            Notification.objects.create(
+                user=booking.guest,
+                title=f'Room Booking Submitted - {booking.booking_reference}',
+                message=f'Your booking for {booking.room_type.name} has been submitted. Please proceed to payment.',
+                notification_type='booking',
+                booking=booking,
+                icon='fa-calendar-check',
+                link=f'/bookings/confirmation/{booking.id}/'
+            )
         
         # Send SMS confirmation in background thread (non-blocking)
         # This prevents worker timeout from SMS hanging
