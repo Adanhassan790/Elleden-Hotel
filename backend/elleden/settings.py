@@ -291,9 +291,6 @@ for static_dir in STATICFILES_DIRS:
         print(f"✗ Missing static dir: {check_dir}", file=sys.stderr)
 
 # Use Django's default static files storage
-# WhiteNoise middleware will handle compression and caching automatically
-# This avoids manifest-based storage which can cause missing file errors
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Explicitly disable manifest storage to prevent missing file errors on Railway
 # Use simple storage without hashing or manifests
