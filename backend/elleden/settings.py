@@ -290,10 +290,21 @@ for static_dir in STATICFILES_DIRS:
     else:
         print(f"✗ Missing static dir: {check_dir}", file=sys.stderr)
 
-# Use WhiteNoise's compressed storage for static files
-# WhiteNoise handles compression and caching efficiently without requiring a manifest
-# This is simpler and more reliable than manifest-based storage
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+# Use Django's default static files storage
+# WhiteNoise middleware will handle compression and caching automatically
+# This avoids manifest-based storage which can cause missing file errors
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Explicitly disable manifest storage to prevent missing file errors on Railway
+# Use simple storage without hashing or manifests
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
 
 # Media files
 MEDIA_URL = 'media/'
