@@ -290,9 +290,10 @@ for static_dir in STATICFILES_DIRS:
     else:
         print(f"✗ Missing static dir: {check_dir}", file=sys.stderr)
 
-# Use WhiteNoise's compressed manifest storage for static files
-# This handles compression and caching efficiently on Railway
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Use WhiteNoise's compressed storage for static files
+# WhiteNoise handles compression and caching efficiently without requiring a manifest
+# This is simpler and more reliable than manifest-based storage
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files
 MEDIA_URL = 'media/'
