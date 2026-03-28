@@ -17,11 +17,12 @@ if os.getenv('SECRET_KEY') is None and not os.getenv('DEBUG') == 'True':
     raise ValueError('SECRET_KEY environment variable is not set. Set it before running the app.')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = os.getenv('DEBUG', 'True') == 'True'
-DEBUG =  True# Default to False for safety
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # Allowed hosts - add your production domain
-#ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',') + ['.railway.app', '.up.railway.app']
-ALLOWED_HOSTS =[]
+# Format: 'domain.railway.app' or use ALLOWED_HOSTS env variable to override
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',')
+# Add Railway domains
+ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + ['.railway.app', '.up.railway.app', 'localhost', '127.0.0.1']))
 # =============================================================================
 # PRODUCTION SECURITY SETTINGS
 # =============================================================================
@@ -194,6 +195,7 @@ JAZZMIN_UI_TWEAKS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise for static files on Railway
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -288,9 +290,9 @@ for static_dir in STATICFILES_DIRS:
     else:
         print(f"✗ Missing static dir: {check_dir}", file=sys.stderr)
 
-# Use Django's default storage - WhiteNoise middleware will handle serving efficiently
-# This avoids manifest and compression issues that plague CompressedManifestStaticFilesStorage
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# Use WhiteNoise's compressed manifest storage for static files
+# This handles compression and caching efficiently on Railway
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = 'media/'
@@ -312,7 +314,9 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
-] + [f'https://{host}' for host in ALLOWED_HOSTS if host and not host.startswith('.')]
+    'https://*.railway.app',
+    'https://*.up.railway.app',
+] + [f'https://{host}' for host in ALLOWED_HOSTS if host and not host.startswith('.') and host != '*']
 
 # REST Framework
 REST_FRAMEWORK = {
@@ -340,6 +344,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:5500',
     'http://127.0.0.1:5500',
+    'https://*.railway.app',
+    'https://*.up.railway.app',
 ]
 CORS_ALLOW_CREDENTIALS = True
 
