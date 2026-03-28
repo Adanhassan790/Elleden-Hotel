@@ -633,29 +633,53 @@ def customer_dashboard(request):
     completed_bookings = bookings.filter(status='checked_out').count()
     recent_bookings = bookings[:5]
     
-    # Restaurant Reservations (filter by email)
-    restaurant_reservations = RestaurantReservation.objects.filter(
-        email=user.email
-    ).order_by('-created_at')
-    upcoming_reservations = restaurant_reservations.filter(
-        status__in=['pending', 'confirmed']
-    ).count()
+    # Restaurant Reservations (filter by email) - Handle potential database column errors
+    restaurant_reservations = []
+    upcoming_reservations = 0
+    try:
+        restaurant_reservations = RestaurantReservation.objects.filter(
+            email=user.email
+        ).order_by('-created_at')
+        upcoming_reservations = restaurant_reservations.filter(
+            status__in=['pending', 'confirmed']
+        ).count()
+    except Exception as e:
+        # If query fails (e.g., missing columns), show empty state
+        print(f"⚠ Restaurant query error: {e}")
+        restaurant_reservations = []
+        upcoming_reservations = 0
     
-    # Conference Bookings (filter by email)
-    conference_bookings = ConferenceBooking.objects.filter(
-        email=user.email
-    ).order_by('-created_at')
-    upcoming_conferences = conference_bookings.filter(
-        status__in=['pending', 'confirmed']
-    ).count()
+    # Conference Bookings (filter by email) - Handle potential database column errors
+    conference_bookings = []
+    upcoming_conferences = 0
+    try:
+        conference_bookings = ConferenceBooking.objects.filter(
+            email=user.email
+        ).order_by('-created_at')
+        upcoming_conferences = conference_bookings.filter(
+            status__in=['pending', 'confirmed']
+        ).count()
+    except Exception as e:
+        # If query fails (e.g., missing columns), show empty state
+        print(f"⚠ Conference query error: {e}")
+        conference_bookings = []
+        upcoming_conferences = 0
     
-    # Catering Orders (filter by email)
-    catering_orders = CateringOrder.objects.filter(
-        email=user.email
-    ).order_by('-created_at')
-    upcoming_catering = catering_orders.filter(
-        status__in=['pending', 'confirmed', 'preparing']
-    ).count()
+    # Catering Orders (filter by email) - Handle potential database column errors
+    catering_orders = []
+    upcoming_catering = 0
+    try:
+        catering_orders = CateringOrder.objects.filter(
+            email=user.email
+        ).order_by('-created_at')
+        upcoming_catering = catering_orders.filter(
+            status__in=['pending', 'confirmed', 'preparing']
+        ).count()
+    except Exception as e:
+        # If query fails (e.g., missing columns), show empty state
+        print(f"⚠ Catering query error: {e}")
+        catering_orders = []
+        upcoming_catering = 0
     
     context = {
         # Room bookings
@@ -665,18 +689,18 @@ def customer_dashboard(request):
         'completed_bookings': completed_bookings,
         
         # Restaurant
-        'restaurant_reservations': restaurant_reservations[:3],
-        'total_reservations': restaurant_reservations.count(),
+        'restaurant_reservations': restaurant_reservations[:3] if restaurant_reservations else [],
+        'total_reservations': restaurant_reservations.count() if hasattr(restaurant_reservations, 'count') else len(restaurant_reservations),
         'upcoming_reservations': upcoming_reservations,
         
         # Conference
-        'conference_bookings': conference_bookings[:3],
-        'total_conferences': conference_bookings.count(),
+        'conference_bookings': conference_bookings[:3] if conference_bookings else [],
+        'total_conferences': conference_bookings.count() if hasattr(conference_bookings, 'count') else len(conference_bookings),
         'upcoming_conferences': upcoming_conferences,
         
         # Catering
-        'catering_orders': catering_orders[:3],
-        'total_catering': catering_orders.count(),
+        'catering_orders': catering_orders[:3] if catering_orders else [],
+        'total_catering': catering_orders.count() if hasattr(catering_orders, 'count') else len(catering_orders),
         'upcoming_catering': upcoming_catering,
     }
     
