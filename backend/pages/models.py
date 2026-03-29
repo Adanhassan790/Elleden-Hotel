@@ -70,15 +70,16 @@ class RestaurantReservation(models.Model):
     guests = models.PositiveIntegerField()
     special_requests = models.TextField(blank=True)
     
-    # Payment Fields
-    price_per_person = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    payment_status = models.CharField(
-        max_length=20, 
-        choices=[('pending', 'Pending'), ('partial', 'Partial'), ('paid', 'Paid')], 
-        default='pending'
-    )
+    # Payment Fields - TEMPORARILY DISABLED (columns don't exist in production DB yet)
+    # Once migrations run, uncomment these fields
+    # price_per_person = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # payment_status = models.CharField(
+    #     max_length=20, 
+    #     choices=[('pending', 'Pending'), ('partial', 'Partial'), ('paid', 'Paid')], 
+    #     default='pending'
+    # )
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -96,23 +97,8 @@ class RestaurantReservation(models.Model):
         if not self.booking_reference:
             self.booking_reference = self.generate_reference()
         
-        # Calculate total amount based on guests and price per person
-        try:
-            if self.price_per_person <= 0:
-                self.price_per_person = 2500  # Default price per person if not set
-            
-            self.total_amount = self.price_per_person * self.guests
-            
-            # Update payment status based on payment amount
-            if self.amount_paid >= self.total_amount and self.total_amount > 0:
-                self.payment_status = 'paid'
-            elif self.amount_paid > 0:
-                self.payment_status = 'partial'
-            else:
-                self.payment_status = 'pending'
-        except:
-            # Skip if fields don't exist yet (during migration transition)
-            pass
+        # Payment field calculations disabled until columns exist in database
+        # They will be enabled after migrations run on production
         
         super().save(*args, **kwargs)
     
