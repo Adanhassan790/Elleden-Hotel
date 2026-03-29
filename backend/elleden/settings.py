@@ -145,7 +145,7 @@ JAZZMIN_SETTINGS = {
     "related_modal_active": True,
     
     # UI Customizations
-    "custom_css": "css/admin_custom.css",
+    "custom_css": None,  # Temporarily disabled to debug 500 error
     "custom_js": None,
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
