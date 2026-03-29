@@ -7,6 +7,7 @@ const navLinks = document.querySelectorAll('.nav-link');
 
 // ===== HEADER SCROLL EFFECT =====
 function scrollHeader() {
+    if (!header) return; // Exit if header doesn't exist
     if (window.scrollY >= 100) {
         header.classList.add('scrolled');
     } else {
@@ -17,7 +18,7 @@ window.addEventListener('scroll', scrollHeader);
 
 // ===== MOBILE MENU =====
 // Show menu
-if (navToggle) {
+if (navToggle && navMenu) {
     navToggle.addEventListener('click', () => {
         navMenu.classList.add('show');
         document.body.style.overflow = 'hidden';
@@ -25,7 +26,7 @@ if (navToggle) {
 }
 
 // Hide menu
-if (navClose) {
+if (navClose && navMenu) {
     navClose.addEventListener('click', () => {
         navMenu.classList.remove('show');
         document.body.style.overflow = 'auto';
@@ -35,14 +36,16 @@ if (navClose) {
 // Close menu when clicking on nav links
 navLinks.forEach(link => {
     link.addEventListener('click', () => {
-        navMenu.classList.remove('show');
-        document.body.style.overflow = 'auto';
+        if (navMenu) {
+            navMenu.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
     });
 });
 
 // Close menu when clicking outside
 document.addEventListener('click', (e) => {
-    if (navMenu.classList.contains('show') && 
+    if (navMenu && navToggle && navMenu.classList.contains('show') && 
         !navMenu.contains(e.target) && 
         !navToggle.contains(e.target)) {
         navMenu.classList.remove('show');
