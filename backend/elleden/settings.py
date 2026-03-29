@@ -301,6 +301,10 @@ STORAGES = {
     },
 }
 
+# WhiteNoise Configuration - serve static files properly
+WHITENOISE_AUTOREFRESH = True  # Auto-refresh static files on development
+WHITENOISE_USE_FINDERS = True  # Use finders to locate static files
+
 # Media files
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
