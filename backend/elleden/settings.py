@@ -267,6 +267,10 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # On Railway (/app/backend) and locally (C:\...\backend\staticfiles)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Static file storage configuration for Jazzmin and WhiteNoise
+# Use whitenoise's compressed static file storage for production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Ensure the staticfiles directory exists before Django tries to use it
 import sys
 try:
