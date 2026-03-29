@@ -145,7 +145,7 @@ JAZZMIN_SETTINGS = {
     "related_modal_active": True,
     
     # UI Customizations
-    "custom_css": None,  # Temporarily disabled to debug 500 error
+    "custom_css": "css/admin_custom.css",
     "custom_js": None,
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
@@ -291,13 +291,13 @@ for static_dir in STATICFILES_DIRS:
         print(f"✗ Missing static dir: {check_dir}", file=sys.stderr)
 
 # Use Django 4.2+ STORAGES configuration with WhiteNoise for Jazzmin support
-# Use whitenoise's compressed manifest static files storage for production
+# Use WhiteNoise's simple static files storage (not compressed) for better Jazzmin compatibility
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        'BACKEND': 'whitenoise.storage.StaticFilesStorage',
     },
 }
 
