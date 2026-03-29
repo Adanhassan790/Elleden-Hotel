@@ -267,10 +267,6 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # On Railway (/app/backend) and locally (C:\...\backend\staticfiles)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Static file storage configuration for Jazzmin and WhiteNoise
-# Use whitenoise's compressed static file storage for production
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
 # Ensure the staticfiles directory exists before Django tries to use it
 import sys
 try:
@@ -294,16 +290,14 @@ for static_dir in STATICFILES_DIRS:
     else:
         print(f"✗ Missing static dir: {check_dir}", file=sys.stderr)
 
-# Use Django's default static files storage
-
-# Explicitly disable manifest storage to prevent missing file errors on Railway
-# Use simple storage without hashing or manifests
+# Use Django 4.2+ STORAGES configuration with WhiteNoise for Jazzmin support
+# Use whitenoise's compressed manifest static files storage for production
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
 
