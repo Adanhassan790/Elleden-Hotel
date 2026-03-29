@@ -70,14 +70,17 @@ class RestaurantReservation(models.Model):
     guests = models.PositiveIntegerField()
     special_requests = models.TextField(blank=True)
     
-    # Payment Fields
-    price_per_person = models.DecimalField(max_digits=10, decimal_places=2, default=2500)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # Payment Fields - Added dynamically by apps.py on startup if needed
+    # These are commented out here but will be available once the columns exist in the database
+    price_per_person = models.DecimalField(max_digits=10, decimal_places=2, default=2500, null=True, blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0, null=True, blank=True)
     payment_status = models.CharField(
         max_length=20,
         choices=[('pending', 'Pending'), ('partial', 'Partial'), ('paid', 'Paid')],
-        default='pending'
+        default='pending',
+        null=True,
+        blank=True
     )
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
