@@ -97,18 +97,22 @@ class RestaurantReservation(models.Model):
             self.booking_reference = self.generate_reference()
         
         # Calculate total amount based on guests and price per person
-        if self.price_per_person <= 0:
-            self.price_per_person = 2500  # Default price per person if not set
-        
-        self.total_amount = self.price_per_person * self.guests
-        
-        # Update payment status based on payment amount
-        if self.amount_paid >= self.total_amount and self.total_amount > 0:
-            self.payment_status = 'paid'
-        elif self.amount_paid > 0:
-            self.payment_status = 'partial'
-        else:
-            self.payment_status = 'pending'
+        try:
+            if self.price_per_person <= 0:
+                self.price_per_person = 2500  # Default price per person if not set
+            
+            self.total_amount = self.price_per_person * self.guests
+            
+            # Update payment status based on payment amount
+            if self.amount_paid >= self.total_amount and self.total_amount > 0:
+                self.payment_status = 'paid'
+            elif self.amount_paid > 0:
+                self.payment_status = 'partial'
+            else:
+                self.payment_status = 'pending'
+        except:
+            # Skip if fields don't exist yet (during migration transition)
+            pass
         
         super().save(*args, **kwargs)
     
