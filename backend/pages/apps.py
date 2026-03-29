@@ -20,37 +20,43 @@ class PagesConfig(AppConfig):
         """
         try:
             from django.db import transaction
+            from psycopg2 import Error as PostgresError
             
-            # Use transaction to ensure changes are committed
-            with transaction.atomic():
-                with connection.cursor() as cursor:
-                    # Check if table exists and get existing columns
-                    cursor.execute("""
-                        SELECT column_name 
-                        FROM information_schema.columns 
-                        WHERE table_name = 'pages_restaurantreservation'
-                    """)
-                    existing_columns = {row[0] for row in cursor.fetchall()}
-                    
-                    # Add missing columns
-                    columns_to_add = {
-                        'price_per_person': "DECIMAL(10, 2) DEFAULT 2500",
-                        'total_amount': "DECIMAL(10, 2) DEFAULT 0",
-                        'amount_paid': "DECIMAL(10, 2) DEFAULT 0",
-                        'payment_status': "VARCHAR(20) DEFAULT 'pending'"
-                    }
-                    
-                    for col_name, col_type in columns_to_add.items():
-                        if col_name not in existing_columns:
-                            try:
-                                sql = f"ALTER TABLE pages_restaurantreservation ADD COLUMN {col_name} {col_type}"
-                                cursor.execute(sql)
-                                print(f"✓ Added {col_name} column to RestaurantReservation")
-                            except Exception as e:
-                                # Column might already exist or other error, log it and continue
+            with connection.cursor() as cursor:
+                # Check if table exists and get existing columns
+                cursor.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'pages_restaurantreservation'
+                """)
+                existing_columns = {row[0] for row in cursor.fetchall()}
+                
+                # Add missing columns (each in its own transaction to prevent abort)
+                columns_to_add = {
+                    'price_per_person': "DECIMAL(10, 2) DEFAULT 2500",
+                    'total_amount': "DECIMAL(10, 2) DEFAULT 0",
+                    'amount_paid': "DECIMAL(10, 2) DEFAULT 0",
+                    'payment_status': "VARCHAR(20) DEFAULT 'pending'"
+                }
+                
+                for col_name, col_type in columns_to_add.items():
+                    if col_name not in existing_columns:
+                        try:
+                            # Wrap each column creation in its own atomic block
+                            with transaction.atomic():
+                                with connection.cursor() as col_cursor:
+                                    sql = f"ALTER TABLE pages_restaurantreservation ADD COLUMN {col_name} {col_type}"
+                                    col_cursor.execute(sql)
+                                    print(f"✓ Added {col_name} column to RestaurantReservation")
+                        except PostgresError as e:
+                            if 'already exists' in str(e):
+                                print(f"✓ Column {col_name} already exists")
+                            else:
                                 print(f"⚠ Could not add {col_name}: {str(e)}")
-                        else:
-                            print(f"✓ Column {col_name} already exists")
+                        except Exception as e:
+                            print(f"⚠ Could not add {col_name}: {str(e)}")
+                    else:
+                        print(f"✓ Column {col_name} already exists")
         
         except Exception as e:
             # Log but don't crash - app should still work
