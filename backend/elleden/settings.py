@@ -20,9 +20,16 @@ if os.getenv('SECRET_KEY') is None and not os.getenv('DEBUG') == 'True':
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 # Allowed hosts - add your production domain
 # Format: 'domain.railway.app' or use ALLOWED_HOSTS env variable to override
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',')
-# Add Railway domains
-ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + ['.railway.app', '.up.railway.app', 'localhost', '127.0.0.1']))
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*.railway.app').split(',')
+# Add custom domain and Railway domains
+ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + [
+    'elleden-hotel.com',
+    'www.elleden-hotel.com',
+    '.railway.app',
+    '.up.railway.app',
+    'localhost',
+    '127.0.0.1'
+]))
 # =============================================================================
 # PRODUCTION SECURITY SETTINGS
 # =============================================================================
