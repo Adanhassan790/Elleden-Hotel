@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://elleden-hotel.com/sitemap.xml
+Sitemap: https://www.elleden-hotel.com/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /accounts/login/
+Disallow: /accounts/register/
+Disallow: /api/

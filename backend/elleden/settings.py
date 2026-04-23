@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
     
     # Third party apps
     'rest_framework',
@@ -402,6 +404,13 @@ MPESA_PASSKEY = os.getenv('MPESA_PASSKEY', 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c
 # Use ngrok for local testing: ngrok http 8000
 # Example: https://your-ngrok-url.ngrok.io/bookings/mpesa/callback/
 MPESA_CALLBACK_URL = os.getenv('MPESA_CALLBACK_URL', 'https://your-domain.com/bookings/mpesa/callback/')
+
+# =============================================================================
+# DJANGO SITES CONFIGURATION (Required for Sitemaps and SEO)
+# =============================================================================
+SITE_ID = 1
+SITE_DOMAIN = os.getenv('SITE_DOMAIN', 'elleden-hotel.com')
+SITE_NAME = 'Elleden Hotel'
 
 # =============================================================================
 # MANUAL PAYMENT SETTINGS (Non-automated M-Pesa)

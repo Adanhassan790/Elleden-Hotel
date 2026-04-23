@@ -7,11 +7,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from django.http import JsonResponse
+from django.contrib.sitemaps.views import sitemap
+from django.views.generic import TemplateView
 from elleden.debug_views import static_files_debug
+from elleden.sitemap import StaticViewSitemap, RoomSitemap
+
+sitemaps = {
+    'static': StaticViewSitemap,
+    'rooms': RoomSitemap,
+}
 
 urlpatterns = [
     path('healthcheck/', lambda r: JsonResponse({'status': 'ok', 'DEBUG': settings.DEBUG, 'ALLOWED_HOSTS': settings.ALLOWED_HOSTS}), name='healthcheck'),
     path('admin/', admin.site.urls),
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain'), name='robots.txt'),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('dashboard/', include('dashboard.urls')),
     path('', include('pages.urls')),
     path('accounts/', include('accounts.urls')),
